@@ -1,7 +1,11 @@
 'use client';
 
-import { number } from 'prop-types';
-import { useState, FocusEvent } from 'react';
+import { FocusEvent, StrictMode, useState } from 'react';
+
+enum Mode {
+    NoSell,
+    AllowSell
+}
 
 export default function Home() {
     const [account, setAccount] = useState<string>('');
@@ -13,27 +17,17 @@ export default function Home() {
     ]);
 
     const [category, setCategory] = useState<string>('');
-    const [categories, setCategories] = useState<string[]>([
-        'US Stocks',
-        'US Small Value',
-        'International Stocks',
-        'International Small Value',
+    const [categories, setCategories] = useState([
+        { name: 'US Stocks', funds: [{ name: 'VTSAX / VTI' }], allotment: 0.5 },
+        { name: 'US Small Value', funds: [{ name: 'AVUV' }], allotment: 0.2 },
+        { name: 'International Stocks', funds: [{ name: 'VTIAX / VXUS' }], allotment: 0.2 },
+        { name: 'International Small Value', funds: [{ name: 'AVDV' }], allotment: 0.1 },
     ]);
 
-    const [totals, setTotals] = useState<{ [idx: number]: { [idx: number]: number } }>(() => {
-        const totals: { [idx: number]: { [idx: number]: number } } = {};
-
-        categories.forEach((_value, c_idx: number) => {
-            const cat_totals: { [idx: number]: number } = {};
-
-            accounts.forEach((_value, a_idx: number) => {
-                cat_totals[a_idx] = 0;
-            });
-
-            totals[c_idx] = cat_totals;
+    const [totals, setTotals] = useState<number[][]>(() => {
+        return categories.map((cat) => {
+            return accounts.map((acct) => 0);
         });
-
-        return totals;
     });
 
     const updateAccount = (event: FocusEvent<HTMLInputElement>, idx: number) => {
@@ -43,73 +37,81 @@ export default function Home() {
     };
 
     const updateTotals = (event: FocusEvent<HTMLInputElement>, category_index: number, account_index: number): void => {
-        const newTotals = Object.assign({}, totals);
+        const newTotals = totals.map((a) => a.slice());
         newTotals[category_index][account_index] = Number(event.target.value);
         setTotals(newTotals);
     };
 
     return (
-        <div>
-            <table>
-                <thead>
-                <tr>
-                    <th>Category</th>
-                    {accounts.map((name, idx) => <th key={name}>
-                        <input onBlur={(event) => updateAccount(event, idx)} defaultValue={name}/>
-                    </th>)}
-                    <th>Totals</th>
-                </tr>
-                </thead>
-                <tbody>
-                {categories.map((name, c_idx) => {
-                    return (
-                        <tr key={c_idx}>
-                            <td>{name}</td>
-                            {accounts.map((name, a_idx) => <td key={`${c_idx}-${a_idx}`}>
-                                <input onBlur={(event) => updateTotals(event, c_idx, a_idx)} defaultValue={totals[c_idx][a_idx]}/>
-                            </td>)}
-                            <td key={`category-totals-${c_idx}`}>Category Total: {Object.values(totals[c_idx]).reduce((acc, v) => acc + v, 0)}</td>
-                        </tr>
-                    );
-                })}
-                <tr>
-                    <td>Totals</td>
-                    {categories.map((name: string, idx) => {
-                        return <td key={`acct-totals-${idx}`}>Account Total: {Object.values(totals).reduce((acc, v) => acc + v[idx], 0)}</td>
-                    })}
-                </tr>
-                </tbody>
-            </table>
-
-            <hr/>
-
+        <StrictMode>
             <div>
-                <input
-                    value={category}
-                    placeholder="Category..."
-                    onChange={e => setCategory(e.target.value)}
-                />
-                <button
-                    onClick={() => {
-                        setCategories([...categories, category]);
-                        setCategory('');
-                    }}>Add Category
-                </button>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Funds</th>
+                        {accounts.map((name, idx) => <th key={name}>
+                            <input onBlur={(event) => updateAccount(event, idx)} defaultValue={name}/>
+                        </th>)}
+                        <th>Totals</th>
+                    </tr>
+                    </thead>
+                    {
+                        categories.map((cat, c_idx) => {
+                            return (
+                                <tbody key={`category-group-${c_idx}`}>
+                                <tr key={`category-${c_idx}`}>
+                                    <th>{cat.name}</th>
+                                </tr>
+                                {
+                                    cat.funds.map((fund, f_idx) => {
+                                        return (
+                                            <tr key={`category-${c_idx}-${f_idx}`}>
+                                                <td>{fund.name}</td>
+                                                {accounts.map((name, a_idx) => <td key={`account-${c_idx}-${a_idx}`}>
+                                                    <input onBlur={(event) => updateTotals(event, c_idx, a_idx)} defaultValue={totals[c_idx][a_idx]}/>
+                                                </td>)}
+                                                <td key={`category-totals-${c_idx}`}>Category Total: {totals[c_idx].reduce((acc, v) => acc + v, 0)}</td>
+                                            </tr>
+                                        );
+                                    })
+                                }
+                                </tbody>
+                            );
+                        })
+                    }
+                    <tbody>
+                    <tr>
+                        <th>Totals:</th>
+                        {categories.map((_cat, idx) => {
+                            return <td key={`acct-totals-${idx}`}>Account Total: {totals.reduce((acc, v) => acc + v[idx], 0)}</td>;
+                        })}
+                    </tr>
+                    </tbody>
+                </table>
+
+                <hr/>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Allotment</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {
+                        categories.map((cat, c_idx) => {
+                            return (
+                                <tr key={`category-config-${c_idx}`}>
+                                    <td>{cat.name}</td>
+                                    <td>{cat.allotment}</td>
+                                </tr>
+                            );
+                        })
+                    }
+                    </tbody>
+                </table>
             </div>
-            <br/>
-            <div>
-                <input
-                    value={account}
-                    placeholder="Account..."
-                    onChange={e => setAccount(e.target.value)}
-                />
-                <button
-                    onClick={() => {
-                        setAccounts([...accounts, account]);
-                        setAccount('');
-                    }}>Add Account
-                </button>
-            </div>
-        </div>
+        </StrictMode>
     );
 }
