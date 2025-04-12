@@ -10,11 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@mantine/core": "^7.17.4",
-    "@mantine/form": "^7.17.4",
-    "@mantine/hooks": "^7.17.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@mantine/core": "^7.17",
+    "@mantine/form": "^7.17",
+    "@mantine/hooks": "^7.17",
+    "@tabler/icons-react": "^3.31",
+    "react": "^19.0",
+    "react-dom": "^19.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

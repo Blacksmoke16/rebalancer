@@ -35,6 +35,9 @@ export default tseslint.config(
                 'warn',
                 { allowConstantExport: true },
             ],
+            'restrict-template-expressions': {
+                allowNumber: true
+            }
         },
     },
 );
