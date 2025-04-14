@@ -93,6 +93,26 @@ export default function App() {
         },
     });
 
+    function updateAssetAccountValue(assetClassName: string, fundTicker: string, accountName: string, value: number): void {
+        const port = [...portfolio];
+        const assetClass = port.find((p) => {
+            return p.name === assetClassName;
+        });
+
+        const fund = assetClass?.funds.find((f) => {
+            return f.ticker === fundTicker;
+        });
+
+        if (!assetClass || !fund) {
+            console.error('Failed to update account value');
+            return;
+        }
+
+        fund.values[accountName] = value;
+
+        setPortfolio(port);
+    }
+
     return (
         <Box display="flex" mt={4}>
             <Paper shadow="xl" withBorder p="xl">
@@ -140,15 +160,15 @@ export default function App() {
                                 {accounts.map((account) => (
                                     <TableTh key={account.key}>{account.name}</TableTh>
                                 ))}
-                                <TableTh>Asset Class Total</TableTh>
+                                <TableTh>Asset Class Totals</TableTh>
                             </TableTr>
                         </TableThead>
                         <TableTbody>
-                            {portfolio.map((assetClass, assetClassIdx) => (
+                            {portfolio.map((assetClass) => (
                                 <Fragment key={assetClass.name}>
                                     {assetClass.funds.map((fund, fundIdx) => {
                                         return (
-                                            <>
+                                            <Fragment key={fund.ticker}>
                                                 {
                                                     fundIdx === 0 && (
                                                         <>
@@ -173,14 +193,18 @@ export default function App() {
                                                                 ))}
                                                                 <TableTd>
                                                                     <Group justify="flex-end">
-                                                                        <NumberFormatter prefix="$" value={0}/>
+                                                                        <NumberFormatter prefix="$" value={
+                                                                            assetClass.funds.reduce((acc, fund) => {
+                                                                                return acc + Object.values(fund.values).reduce((fundAcc, v) => fundAcc + v, 0);
+                                                                            }, 0)
+                                                                        }/>
                                                                     </Group>
                                                                 </TableTd>
                                                             </TableTr>
                                                         </>
                                                     )
                                                 }
-                                                <TableTr key={fund.ticker}>
+                                                <TableTr>
                                                     {fundIdx === 0 && (
                                                         <TableTd rowSpan={assetClass.funds.length}/>
                                                     )}
@@ -192,6 +216,14 @@ export default function App() {
                                                                 allowDecimal={false}
                                                                 leftSection="$"
                                                                 value={fund.values[account.name] || 0}
+                                                                onBlur={(e) => {
+                                                                    updateAssetAccountValue(
+                                                                        assetClass.name,
+                                                                        fund.ticker,
+                                                                        account.name,
+                                                                        parseInt(e.target.value),
+                                                                    );
+                                                                }}
                                                                 size="xs"
                                                             />
                                                         </TableTd>
@@ -200,11 +232,33 @@ export default function App() {
                                                         <TableTd rowSpan={assetClass.funds.length}/>
                                                     )}
                                                 </TableTr>
-                                            </>
+                                            </Fragment>
                                         );
                                     })}
                                 </Fragment>
                             ))}
+                            <TableTr>
+                                <TableTd/>
+                            </TableTr>
+                            <TableTr>
+                                <TableTd colSpan={2}>
+                                    Account Totals
+                                </TableTd>
+                                {accounts.map((account) => (
+                                    <TableTd key={`${account.key}-total`}>
+                                        <Center>
+                                            <NumberFormatter prefix="$" value={
+                                                portfolio.reduce((assetAcc, p) => {
+                                                    return assetAcc + p.funds.reduce((fundAcc, f) => {
+                                                        return fundAcc + (f.values[account.name] ?? 0);
+                                                    }, 0);
+                                                }, 0)
+                                            }/>
+                                        </Center>
+                                    </TableTd>
+                                ))}
+                                <TableTd/>
+                            </TableTr>
                         </TableTbody>
                     </Table>
                 </Paper>
@@ -213,5 +267,6 @@ export default function App() {
 
     );
 }
+
 
 
