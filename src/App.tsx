@@ -3,6 +3,7 @@ import { formRootRule, isNotEmpty, useForm } from '@mantine/form';
 import { randomId, useListState } from '@mantine/hooks';
 import { IconTrash } from '@tabler/icons-react';
 import { Fragment, useState } from 'react';
+import classes from './App.module.css';
 
 interface Account {
     name: string;
@@ -78,9 +79,7 @@ function defaultAssetClasses(): AssetClass[] {
 export default function App() {
     const [accounts, accountList] = useListState<Account>(defaultAccounts());
     const [portfolio, setPortfolio] = useState<AssetClass[]>(defaultAssetClasses);
-
-    // TODO: Make this bound to an input
-    const toInvest = 100;
+    const [toInvest, setToInvest] = useState(0);
 
     const currentPercentage = (assetClass: AssetClass) => (currentForAssetClass(assetClass) / totalDollars()) || 0;
     const targetDollars = (assetClass: AssetClass) => (totalDollars() + toInvest) * (assetClass.allocation / 100);
@@ -289,7 +288,7 @@ export default function App() {
                                                                 </TableTd>
                                                             ))}
                                                             {fundIdx === 0 && (
-                                                                <TableTd rowSpan={assetClass.funds.length}/>
+                                                                <TableTd className={classes.withBorder} rowSpan={assetClass.funds.length}/>
                                                             )}
                                                         </TableTr>
                                                     </Fragment>
@@ -320,7 +319,7 @@ export default function App() {
                 </Group>
 
                 <Paper shadow="xl" withBorder p="xl">
-                    <Table>
+                    <Table withColumnBorders withTableBorder>
                         <TableThead>
                             <TableTr>
                                 <TableTh>Asset Class</TableTh>
@@ -334,43 +333,60 @@ export default function App() {
                                 <TableTh>Projected ($)</TableTh>
                                 <TableTh>Amount to Buy</TableTh>
                             </TableTr>
+                            <TableTr>
+                                <TableTd>To Invest</TableTd>
+                                <TableTd colSpan={9}>
+                                    <Center>
+                                        <NumberInput
+                                            min={0}
+                                            allowDecimal={false}
+                                            leftSection="$"
+                                            value={0}
+                                            onBlur={(e) => {
+                                                setToInvest(parseInt(e.target.value));
+                                            }}
+                                            size="xs"
+                                        />
+                                    </Center>
+                                </TableTd>
+                            </TableTr>
                             {
                                 portfolio.map((assetClass) => {
                                     return (
                                         <TableTr key={assetClass.name}>
                                             <TableTd>{assetClass.name}</TableTd>
                                             <TableTd>
-                                                <NumberFormatter suffix="%" value={assetClass.allocation}/>
+                                                <NumberFormatter suffix="%" value={assetClass.allocation} decimalScale={2}/>
                                             </TableTd>
                                             <TableTd>
                                                 <NumberFormatter suffix="%" value={currentPercentage(assetClass) * 100} decimalScale={2}/>
                                             </TableTd>
                                             <TableTd>
-                                                <NumberFormatter prefix="$" thousandSeparator value={targetDollars(assetClass)}/>
+                                                <NumberFormatter prefix="$" thousandSeparator value={targetDollars(assetClass)} decimalScale={0}/>
                                             </TableTd>
                                             <TableTd>
                                                 <NumberFormatter prefix="$" thousandSeparator value={
                                                     currentForAssetClass(assetClass)
-                                                }/>
+                                                } decimalScale={0}/>
                                             </TableTd>
                                             <TableTd>
                                                 <NumberFormatter suffix="%" value={(currentPercentage(assetClass) * 100) - assetClass.allocation} decimalScale={2}/>
                                             </TableTd>
                                             <TableTd>
-                                                <NumberFormatter prefix="$" thousandSeparator value={
+                                                <NumberFormatter prefix="$" thousandSeparator allowNegative value={
                                                     targetDollars(assetClass) - currentForAssetClass(assetClass)
-                                                }/>
+                                                } decimalScale={0}/>
                                             </TableTd>
                                             <TableTd>
                                                 <NumberFormatter prefix="$" thousandSeparator value={
                                                     currentForAssetClass(assetClass) + amountToBuy(assetClass)
-                                                }/>
+                                                } decimalScale={0}/>
                                             </TableTd>
                                             <TableTd>
-                                                <NumberFormatter suffix="%" value={((currentForAssetClass(assetClass) + amountToBuy(assetClass)) / (totalDollars() + toInvest)) * 100} decimalScale={2}/>
+                                                <NumberFormatter suffix="%" value={(((currentForAssetClass(assetClass) + amountToBuy(assetClass)) / (totalDollars() + toInvest)) * 100) || 0} decimalScale={2}/>
                                             </TableTd>
                                             <TableTd>
-                                                <NumberFormatter prefix="$" thousandSeparator value={amountToBuy(assetClass)}/>
+                                                <NumberFormatter prefix="$" thousandSeparator value={amountToBuy(assetClass)} decimalScale={0}/>
                                             </TableTd>
                                         </TableTr>
                                     );
