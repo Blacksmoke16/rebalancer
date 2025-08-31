@@ -27,7 +27,7 @@ export const FundsList = memo<FundsListProps>(function FundsList({
                     />
                     <DeleteButton
                         size="md"
-                        onClick={() => onRemoveFund(assetClassIndex, fundIdx)}
+                        onClick={() => { onRemoveFund(assetClassIndex, fundIdx); }}
                         aria-label={`Delete fund ${fund.ticker || 'ticker'}`}
                     />
                 </Group>

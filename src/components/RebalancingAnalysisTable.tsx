@@ -1,8 +1,9 @@
 import { Center, Paper, Table, TableTbody, TableTd, TableTh, TableThead, TableTr } from '@mantine/core';
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useCallback } from 'react';
 import { usePortfolioContext } from '../contexts/PortfolioContext';
 import { CurrencyCell, DeltaCell, PercentageCell } from './ui/FormatCells';
 import { NumberField } from './ui/NumberField';
+import { createDollarAmount } from '../types/branded';
 
 export const RebalancingAnalysisTable = memo(function RebalancingAnalysisTable() {
     const { 
@@ -17,6 +18,10 @@ export const RebalancingAnalysisTable = memo(function RebalancingAnalysisTable()
             totalDollars
         }
     } = usePortfolioContext();
+
+    const handleToInvestChange = useCallback((value: number) => {
+        setToInvest(createDollarAmount(value));
+    }, [setToInvest]);
 
     // Pre-calculate values for all asset classes to avoid repeated function calls
     const assetCalculations = useMemo(() => {
@@ -69,7 +74,7 @@ export const RebalancingAnalysisTable = memo(function RebalancingAnalysisTable()
                                 <NumberField
                                     isCurrency
                                     value={toInvest}
-                                    onValueChange={setToInvest}
+                                    onValueChange={handleToInvestChange}
                                 />
                             </Center>
                         </TableTd>

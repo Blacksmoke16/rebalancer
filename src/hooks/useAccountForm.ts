@@ -34,10 +34,9 @@ export function useAccountForm({ accounts, onAccountsChange }: UseAccountFormPro
         form.setInitialValues({ accounts });
     }, [accounts]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleSubmit = useCallback(async (values: { accounts: Account[] }) => {
+    const handleSubmit = useCallback((values: { accounts: Account[] }) => {
         setIsLoading(true);
         try {
-            await new Promise(resolve => setTimeout(resolve, 300)); // Simulate async operation
             onAccountsChange(values.accounts);
             form.setInitialValues({ accounts: values.accounts });
             form.reset();

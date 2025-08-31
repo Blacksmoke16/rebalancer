@@ -33,11 +33,11 @@ export const AssetClassItem = memo<AssetClassItemProps>(function AssetClassItem(
                         />
                         <PercentageInput
                             value={assetClass.allocation}
-                            onChange={(value) => form.setFieldValue(`portfolio.${assetIdx}.allocation`, value)}
+                            onChange={(value) => { form.setFieldValue(`portfolio.${assetIdx}.allocation`, value); }}
                         />
                         <DeleteButton
                             className={classes.deleteButton}
-                            onClick={() => onRemove(assetIdx)}
+                            onClick={() => { onRemove(assetIdx); }}
                             aria-label={`Delete ${assetClass.name || 'asset class'}`}
                         />
                     </FieldGroup>
@@ -52,7 +52,7 @@ export const AssetClassItem = memo<AssetClassItemProps>(function AssetClassItem(
                         <Button
                             size="xs"
                             className={classes.fundsSection}
-                            onClick={() => onAddFund(assetIdx)}
+                            onClick={() => { onAddFund(assetIdx); }}
                         >
                             Add Fund
                         </Button>

@@ -1,18 +1,19 @@
 import { useListState } from '@mantine/hooks';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { STORAGE } from '../constants';
 import { loadPortfolioData, savePortfolioData } from '../storage';
 import { Account, AssetClass } from '../types';
+import { createDollarAmount, DollarAmount } from '../types/branded';
 import { defaultAccounts, defaultAssetClasses } from '../utils';
 
 interface UsePortfolioDataReturn {
     accounts: Account[];
     portfolio: AssetClass[];
-    toInvest: number;
+    toInvest: DollarAmount;
     updateAssetAccountValue: (assetClassName: string, fundTicker: string, accountName: string, value: number) => void;
-    handleDataImport: (newAccounts: Account[], newPortfolio: AssetClass[], newToInvest: number) => void;
+    handleDataImport: (newAccounts: Account[], newPortfolio: AssetClass[], newToInvest: DollarAmount) => void;
     resetToDefaults: () => void;
-    setToInvest: (value: number) => void;
+    setToInvest: (value: DollarAmount) => void;
     accountList: ReturnType<typeof useListState<Account>>[1];
     portfolioList: ReturnType<typeof useListState<AssetClass>>[1];
 }
@@ -21,18 +22,16 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     // Initialize state with defaults, will be overridden by useEffect if data exists
     const [accounts, accountList] = useListState<Account>(defaultAccounts());
     const [portfolio, portfolioList] = useListState<AssetClass>(defaultAssetClasses());
-    const [toInvest, setToInvest] = useState(0);
+    const [toInvest, setToInvest] = useState(createDollarAmount(0));
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Debounced save function to avoid excessive localStorage writes
-    const debouncedSave = useMemo(() => {
-        let timeoutId: number;
-        return () => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-                savePortfolioData(accounts, portfolio, toInvest);
-            }, STORAGE.AUTO_SAVE_DELAY_MS);
-        };
+    const debouncedSave = useCallback(() => {
+        const timeoutId = setTimeout(() => {
+            savePortfolioData(accounts, portfolio, toInvest);
+        }, STORAGE.AUTO_SAVE_DELAY_MS);
+        
+        return () => { clearTimeout(timeoutId); };
     }, [accounts, portfolio, toInvest]);
 
     // Load data from localStorage on component mount
@@ -49,7 +48,8 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     // Auto-save when data changes
     useEffect(() => {
         if (isLoaded) {
-            debouncedSave();
+            const cleanup = debouncedSave();
+            return cleanup;
         }
     }, [accounts, portfolio, toInvest, isLoaded, debouncedSave]);
 
@@ -64,14 +64,14 @@ export function usePortfolioData(): UsePortfolioDataReturn {
                     
                     return {
                         ...fund,
-                        values: { ...fund.values, [accountName]: value }
+                        values: { ...fund.values, [accountName]: createDollarAmount(value) }
                     };
                 })
             };
         }));
     }, [portfolioList]);
 
-    const handleDataImport = useCallback((newAccounts: Account[], newPortfolio: AssetClass[], newToInvest: number): void => {
+    const handleDataImport = useCallback((newAccounts: Account[], newPortfolio: AssetClass[], newToInvest: DollarAmount): void => {
         accountList.setState(newAccounts);
         portfolioList.setState(newPortfolio);
         setToInvest(newToInvest);
@@ -82,7 +82,7 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     const resetToDefaults = useCallback((): void => {
         const defaultAccountsList = defaultAccounts();
         const defaultPortfolioList = defaultAssetClasses();
-        const defaultToInvestValue = 0;
+        const defaultToInvestValue = createDollarAmount(0);
         
         accountList.setState(defaultAccountsList);
         portfolioList.setState(defaultPortfolioList);

@@ -5,7 +5,7 @@ export interface Account {
     key: AccountId;
 }
 
-export type AccountBalances = Record<AccountId, DollarAmount>;
+export type AccountBalances = Record<string, DollarAmount>;
 
 export interface Fund {
     ticker: FundTicker;

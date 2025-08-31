@@ -1,8 +1,10 @@
-import { ActionIcon, Group, NumberInput, TextInput, TextInputProps } from '@mantine/core';
+import { ActionIcon, Group, NumberInput, TextInputProps } from '@mantine/core';
 import { IconTrash } from '@tabler/icons-react';
 import { memo, useCallback } from 'react';
 import { FORMATTING } from '../../constants';
 import { validateAndTransform } from '../../utils/validation';
+import { ValidatedInput } from './ValidatedInput';
+import { createPercentage, Percentage } from '../../types/branded';
 
 // Reusable ticker input with validation
 interface TickerInputProps extends Omit<TextInputProps, 'onChange'> {
@@ -11,31 +13,22 @@ interface TickerInputProps extends Omit<TextInputProps, 'onChange'> {
 }
 
 export const TickerInput = memo<TickerInputProps>(function TickerInput({ value = '', onChange, ...props }) {
-    const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        if (onChange) {
-            const result = validateAndTransform.ticker(event.target.value);
-            const modifiedEvent = { ...event, target: { ...event.target, value: result.value || event.target.value } };
-            onChange(modifiedEvent);
-        }
-    }, [onChange]);
-
-    const { defaultValue, ...restProps } = props;
-
     return (
-        <TextInput
+        <ValidatedInput
             placeholder="VTI"
             style={{ textTransform: 'uppercase' }}
-            onChange={handleChange}
             value={value}
-            {...restProps}
+            onChange={onChange}
+            validationType="ticker"
+            {...props}
         />
     );
 });
 
 // Percentage input with validation
 interface PercentageInputProps {
-    value: number;
-    onChange: (value: number) => void;
+    value: Percentage;
+    onChange: (value: Percentage) => void;
     label?: string;
     placeholder?: string;
 }
@@ -49,7 +42,7 @@ export const PercentageInput = memo<PercentageInputProps>(function PercentageInp
     const handleChange = useCallback((inputValue: string | number) => {
         const numValue = typeof inputValue === 'string' ? parseFloat(inputValue) || 0 : inputValue;
         const result = validateAndTransform.percentage(numValue);
-        onChange(result.value || 0);
+        onChange(createPercentage(result.value ?? 0));
     }, [onChange]);
 
     return (
@@ -76,23 +69,14 @@ export const AssetClassNameInput = memo<AssetClassNameInputProps>(function Asset
     onChange, 
     ...props 
 }) {
-    const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        if (onChange) {
-            const result = validateAndTransform.name(event.target.value);
-            const modifiedEvent = { ...event, target: { ...event.target, value: result.value || event.target.value } };
-            onChange(modifiedEvent);
-        }
-    }, [onChange]);
-
-    const { defaultValue, ...restProps } = props;
-
     return (
-        <TextInput
+        <ValidatedInput
             placeholder="Asset class name"
             label="Name"
             value={value}
-            onChange={handleChange}
-            {...restProps}
+            onChange={onChange}
+            validationType="name"
+            {...props}
         />
     );
 });
@@ -108,23 +92,14 @@ export const AccountNameInput = memo<AccountNameInputProps>(function AccountName
     onChange, 
     ...props 
 }) {
-    const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        if (onChange) {
-            const result = validateAndTransform.name(event.target.value);
-            const modifiedEvent = { ...event, target: { ...event.target, value: result.value || event.target.value } };
-            onChange(modifiedEvent);
-        }
-    }, [onChange]);
-
-    const { defaultValue, ...restProps } = props;
-    
     return (
-        <TextInput
+        <ValidatedInput
             placeholder="Account name"
             label="Name"
             value={value}
-            onChange={handleChange}
-            {...restProps}
+            onChange={onChange}
+            validationType="name"
+            {...props}
         />
     );
 });

@@ -32,7 +32,7 @@ export const AccountsSettings = memo<AccountsSettingsProps>(function AccountsSet
                             {...form.getInputProps(`accounts.${idx}.name`)}
                         />
                         <DeleteButton 
-                            onClick={() => removeAccount(idx)}
+                            onClick={() => { removeAccount(idx); }}
                             aria-label={`Delete account ${account.name || 'account'}`}
                         />
                     </FieldGroup>

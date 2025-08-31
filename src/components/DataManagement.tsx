@@ -5,9 +5,10 @@ import { memo, useCallback, useState } from 'react';
 import { usePortfolioContext } from '../contexts/PortfolioContext';
 import { clearPortfolioData, exportPortfolioData, importPortfolioData } from '../storage';
 import { Account, AssetClass } from '../types';
+import { DollarAmount } from '../types/branded';
 
 interface DataManagementProps {
-    onDataImported: (accounts: Account[], portfolio: AssetClass[], toInvest: number) => void;
+    onDataImported: (accounts: Account[], portfolio: AssetClass[], toInvest: DollarAmount) => void;
 }
 
 export const DataManagement = memo<DataManagementProps>(function DataManagement({ onDataImported }) {

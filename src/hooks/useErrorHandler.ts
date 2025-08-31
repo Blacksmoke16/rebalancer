@@ -10,7 +10,7 @@ interface ErrorHandlerOptions {
 
 export function useErrorHandler() {
     const handleError = useCallback((
-        error: Error | unknown,
+        error: unknown,
         type: ErrorType = 'general',
         options: ErrorHandlerOptions = {}
     ) => {

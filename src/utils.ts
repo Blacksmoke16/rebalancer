@@ -1,11 +1,12 @@
 import { randomId } from '@mantine/hooks';
 import { Account, AssetClass } from './types';
+import { createAccountId, createAssetClassId, createFundTicker, createPercentage } from './types/branded';
 
 export function defaultAccounts(): Account[] {
     return [
-        { name: '401k', key: randomId() },
-        { name: 'Roth IRA', key: randomId() },
-        { name: 'Vanguard Brokerage', key: randomId() },
+        { name: '401k', key: createAccountId(randomId()) },
+        { name: 'Roth IRA', key: createAccountId(randomId()) },
+        { name: 'Vanguard Brokerage', key: createAccountId(randomId()) },
     ];
 }
 
@@ -13,24 +14,24 @@ export function defaultAssetClasses(): AssetClass[] {
     return [
         {
             name: 'US Total Stock Market',
-            allocation: 60,
+            allocation: createPercentage(60),
             funds: [
-                { ticker: 'VTI', values: {}, key: randomId() }, 
-                { ticker: 'IVV', values: {}, key: randomId() }
+                { ticker: createFundTicker('VTI'), values: {}, key: randomId() }, 
+                { ticker: createFundTicker('IVV'), values: {}, key: randomId() }
             ],
-            key: randomId(),
+            key: createAssetClassId(randomId()),
         },
         {
             name: 'International Total Stock Market',
-            allocation: 30,
-            funds: [{ ticker: 'VXUS', values: {}, key: randomId() }],
-            key: randomId(),
+            allocation: createPercentage(30),
+            funds: [{ ticker: createFundTicker('VXUS'), values: {}, key: randomId() }],
+            key: createAssetClassId(randomId()),
         },
         {
             name: 'US Total Bond Market',
-            allocation: 10,
-            funds: [{ ticker: 'BND', values: {}, key: randomId() }],
-            key: randomId(),
+            allocation: createPercentage(10),
+            funds: [{ ticker: createFundTicker('BND'), values: {}, key: randomId() }],
+            key: createAssetClassId(randomId()),
         },
     ];
 }

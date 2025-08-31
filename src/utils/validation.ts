@@ -38,7 +38,7 @@ export const validation = {
     },
 
     // Array validation
-    hasMinimumItems: <T>(array: T[], min: number): boolean => {
+    hasMinimumItems: (array: unknown[], min: number): boolean => {
         return Array.isArray(array) && array.length >= min;
     },
 
@@ -53,11 +53,11 @@ export const validation = {
 } as const;
 
 // Type guards for better TypeScript support
-export type ValidationResult<T> = {
+export interface ValidationResult<T> {
     isValid: boolean;
     value?: T;
     error?: string;
-};
+}
 
 export const validateAndTransform = {
     percentage: (value: unknown): ValidationResult<number> => {

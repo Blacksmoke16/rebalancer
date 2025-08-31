@@ -1,8 +1,9 @@
 import { STORAGE } from './constants';
 import { Account, AssetClass, PortfolioData } from './types';
+import { createDollarAmount, DollarAmount } from './types/branded';
 import { defaultAccounts, defaultAssetClasses } from './utils';
 
-export function savePortfolioData(accounts: Account[], portfolio: AssetClass[], toInvest: number): void {
+export function savePortfolioData(accounts: Account[], portfolio: AssetClass[], toInvest: DollarAmount): void {
     try {
         const data: PortfolioData = {
             accounts,
@@ -49,13 +50,13 @@ export function getDefaultPortfolioData(): PortfolioData {
     return {
         accounts: defaultAccounts(),
         portfolio: defaultAssetClasses(),
-        toInvest: 0,
+        toInvest: createDollarAmount(0),
         version: STORAGE.VERSION,
         lastSaved: new Date().toISOString(),
     };
 }
 
-export function exportPortfolioData(accounts: Account[], portfolio: AssetClass[], toInvest: number): void {
+export function exportPortfolioData(accounts: Account[], portfolio: AssetClass[], toInvest: DollarAmount): void {
     const data: PortfolioData = {
         accounts,
         portfolio,

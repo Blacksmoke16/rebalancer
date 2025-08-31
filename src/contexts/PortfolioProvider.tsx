@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { usePortfolioCalculations } from '../hooks/usePortfolioCalculations';
 import { usePortfolioData } from '../hooks/usePortfolioData';
@@ -10,10 +10,20 @@ interface PortfolioProviderProps {
 
 export function PortfolioProvider({ children }: PortfolioProviderProps) {
     const portfolioData = usePortfolioData();
-    const { accounts, portfolio, toInvest, setToInvest, updateAssetAccountValue, resetToDefaults } = portfolioData;
+    const { 
+        accounts, 
+        portfolio, 
+        toInvest, 
+        setToInvest, 
+        updateAssetAccountValue, 
+        resetToDefaults, 
+        handleDataImport,
+        accountList,
+        portfolioList 
+    } = portfolioData;
     const calculations = usePortfolioCalculations(portfolio, toInvest);
 
-    const contextValue: PortfolioContextValue = {
+    const contextValue: PortfolioContextValue = useMemo(() => ({
         accounts,
         portfolio,
         toInvest,
@@ -21,13 +31,16 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
         updateAssetAccountValue,
         setToInvest,
         resetToDefaults,
-    };
+        handleDataImport,
+        accountList,
+        portfolioList,
+    }), [accounts, portfolio, toInvest, calculations, updateAssetAccountValue, setToInvest, resetToDefaults, handleDataImport, accountList, portfolioList]);
 
     return (
         <ErrorBoundary>
-            <PortfolioContext.Provider value={contextValue}>
+            <PortfolioContext value={contextValue}>
                 {children}
-            </PortfolioContext.Provider>
+            </PortfolioContext>
         </ErrorBoundary>
     );
 }

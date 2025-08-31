@@ -44,13 +44,10 @@ export function usePortfolioCalculations(portfolio: AssetClass[], toInvest: numb
     }, [portfolio]);
 
     const currentForAssetClass = useCallback((assetClass: AssetClass): number => {
-        const matchingAssetClass = portfolio.find(ac => ac.name === assetClass.name);
-        if (!matchingAssetClass) return 0;
-
-        return matchingAssetClass.funds.reduce((fundAcc, fund) => {
+        return assetClass.funds.reduce((fundAcc, fund) => {
             return fundAcc + Object.values(fund.values).reduce((valueAcc, value) => valueAcc + value, 0);
         }, 0);
-    }, [portfolio]);
+    }, []);
 
     // Functions that depend on both portfolio and toInvest
     const currentPercentage = useCallback((assetClass: AssetClass): number => {
