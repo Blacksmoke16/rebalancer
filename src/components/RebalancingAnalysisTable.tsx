@@ -51,7 +51,7 @@ export const RebalancingAnalysisTable = memo(function RebalancingAnalysisTable()
 
     return (
         <Paper shadow="sm" withBorder p="xl">
-            <Table withColumnBorders withTableBorder striped highlightOnHover>
+            <Table withColumnBorders withTableBorder>
                 <TableThead>
                     <TableTr>
                         <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Asset Class</TableTh>

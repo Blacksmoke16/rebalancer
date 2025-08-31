@@ -198,7 +198,7 @@ describe('Storage Utilities', () => {
       expect(result.accounts.map(a => a.name)).toEqual([
         '401k',
         'Roth IRA', 
-        'Vanguard Brokerage'
+        'Taxable Brokerage'
       ]);
     });
 

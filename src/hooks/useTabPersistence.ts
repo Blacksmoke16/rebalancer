@@ -2,17 +2,17 @@ import { useState, useEffect } from 'react';
 
 const TAB_STORAGE_KEY = 'rebalancer-active-tab';
 
-export function useTabPersistence(defaultTab: string = 'portfolio') {
+export function useTabPersistence(defaultTab = 'portfolio') {
     const [activeTab, setActiveTab] = useState<string>(() => {
         try {
-            return localStorage.getItem(TAB_STORAGE_KEY) || defaultTab;
+            return localStorage.getItem(TAB_STORAGE_KEY) ?? defaultTab;
         } catch {
             return defaultTab;
         }
     });
 
     const handleTabChange = (value: string | null) => {
-        const newTab = value || defaultTab;
+        const newTab = value ?? defaultTab;
         setActiveTab(newTab);
     };
 
