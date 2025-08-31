@@ -1,4 +1,4 @@
-import { Button, Group, Paper, Title } from '@mantine/core';
+import { Button, Group, Paper, Title, Text, Stack } from '@mantine/core';
 import { memo } from 'react';
 import { Account } from '../types';
 import { useAccountForm } from '../hooks/useAccountForm';
@@ -23,36 +23,49 @@ export const AccountsSettings = memo<AccountsSettingsProps>(function AccountsSet
     } = useAccountForm({ accounts, onAccountsChange });
 
     return (
-        <Paper shadow="xl" withBorder p="xl" className={classes.container}>
-            <Title order={3}>Accounts</Title>
-            <form onSubmit={form.onSubmit(handleSubmit)}>
-                {form.getValues().accounts.map((account, idx) => (
-                    <FieldGroup key={account.key} className={classes.accountItem}>
-                        <AccountNameInput
-                            {...form.getInputProps(`accounts.${idx}.name`)}
-                        />
-                        <DeleteButton 
-                            onClick={() => { removeAccount(idx); }}
-                            aria-label={`Delete account ${account.name || 'account'}`}
-                        />
-                    </FieldGroup>
-                ))}
-                <Group className={classes.actionButtons} justify="space-evenly">
-                    <Button 
-                        onClick={addAccount}
-                        disabled={isLoading}
-                    >
-                        Add Account
-                    </Button>
-                    <Button 
-                        disabled={!form.isValid() || !form.isDirty() || isLoading} 
-                        loading={isLoading}
-                        type="submit"
-                    >
-                        Save
-                    </Button>
-                </Group>
-            </form>
+        <Paper shadow="sm" withBorder p="xl" className={classes.container}>
+            <Stack gap="md">
+                <div>
+                    <Title order={3}>Investment Accounts</Title>
+                    <Text size="sm" c="dimmed" mt="xs">
+                        Define the accounts where you hold your investments (e.g., 401k, IRA, Taxable)
+                    </Text>
+                </div>
+                
+                <form onSubmit={form.onSubmit(handleSubmit)}>
+                    <Stack gap="md">
+                        {form.values.accounts.map((account, idx) => (
+                            <FieldGroup key={account.key} className={classes.accountItem}>
+                                <AccountNameInput
+                                    {...form.getInputProps(`accounts.${idx}.name`)}
+                                    placeholder={`Account ${idx + 1} name (e.g., 401k, Roth IRA)`}
+                                />
+                                <DeleteButton 
+                                    onClick={() => { removeAccount(idx); }}
+                                    aria-label={`Delete account ${account.name || 'account'}`}
+                                />
+                            </FieldGroup>
+                        ))}
+                        
+                        <Group className={classes.actionButtons} justify="space-between" mt="lg">
+                            <Button 
+                                variant="light"
+                                onClick={addAccount}
+                                disabled={isLoading}
+                            >
+                                + Add Account
+                            </Button>
+                            <Button 
+                                disabled={!form.isValid() || !form.isDirty() || isLoading} 
+                                loading={isLoading}
+                                type="submit"
+                            >
+                                Save Changes
+                            </Button>
+                        </Group>
+                    </Stack>
+                </form>
+            </Stack>
         </Paper>
     );
 });

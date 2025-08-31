@@ -1,4 +1,4 @@
-import { Button, Group, Paper, Title } from '@mantine/core';
+import { Button, Group, Paper, Title, Text, Stack } from '@mantine/core';
 import { memo } from 'react';
 import { AssetClass } from '../types';
 import { useAssetClassForm } from '../hooks/useAssetClassForm';
@@ -26,33 +26,49 @@ export const AssetClassSettings = memo<AssetClassSettingsProps>(function AssetCl
     } = useAssetClassForm({ portfolio, onPortfolioChange });
 
     return (
-        <Paper shadow="xl" withBorder p="xl" className={classes.container}>
-            <Title order={3}>Asset Classes</Title>
-            <form onSubmit={form.onSubmit(handleSubmit)}>
-                {form.getValues().portfolio.map((assetClass, assetIdx) => (
-                    <AssetClassItem
-                        key={assetClass.key}
-                        assetClass={assetClass}
-                        assetIdx={assetIdx}
-                        form={form}
-                        onRemove={removeAssetClass}
-                        onAddFund={addFund}
-                        onRemoveFund={removeFund}
-                    />
-                ))}
-                <Group className={classes.actionButtons} justify="space-evenly">
-                    <Button onClick={addAssetClass}>
-                        Add Asset Class
-                    </Button>
-                    <Button 
-                        disabled={!form.isValid() || !form.isDirty()} 
-                        type="submit"
-                    >
-                        Save
-                    </Button>
-                </Group>
+        <Paper shadow="sm" withBorder p="xl" className={classes.container}>
+            <Stack gap="lg">
+                <div>
+                    <Title order={3}>Asset Classes & Target Allocation</Title>
+                    <Text size="sm" c="dimmed" mt="xs">
+                        Define your asset classes, target allocation percentages, and the funds within each class. 
+                        Total allocation must equal 100%.
+                    </Text>
+                </div>
+                
                 <AllocationSummary totalAllocation={getTotalAllocation()} />
-            </form>
+                
+                <form onSubmit={form.onSubmit(handleSubmit)}>
+                    <Stack gap="md">
+                        {form.values.portfolio.map((assetClass, assetIdx) => (
+                            <AssetClassItem
+                                key={assetClass.key}
+                                assetClass={assetClass}
+                                assetIdx={assetIdx}
+                                form={form}
+                                onRemove={removeAssetClass}
+                                onAddFund={addFund}
+                                onRemoveFund={removeFund}
+                            />
+                        ))}
+                        
+                        <Group className={classes.actionButtons} justify="space-between" mt="lg">
+                            <Button 
+                                variant="light"
+                                onClick={addAssetClass}
+                            >
+                                + Add Asset Class
+                            </Button>
+                            <Button 
+                                disabled={!form.isValid() || !form.isDirty()} 
+                                type="submit"
+                            >
+                                Save Changes
+                            </Button>
+                        </Group>
+                    </Stack>
+                </form>
+            </Stack>
         </Paper>
     );
 });

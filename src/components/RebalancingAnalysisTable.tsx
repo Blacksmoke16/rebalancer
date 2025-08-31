@@ -50,31 +50,38 @@ export const RebalancingAnalysisTable = memo(function RebalancingAnalysisTable()
     }, [portfolio, currentForAssetClass, targetDollars, currentPercentage, amountToBuy, totalDollars, toInvest]);
 
     return (
-        <Paper shadow="xl" withBorder p="xl">
-            <Table withColumnBorders withTableBorder>
+        <Paper shadow="sm" withBorder p="xl">
+            <Table withColumnBorders withTableBorder striped highlightOnHover>
                 <TableThead>
                     <TableTr>
-                        <TableTh>Asset Class</TableTh>
-                        <TableTh>Target (%)</TableTh>
-                        <TableTh>Current (%)</TableTh>
-                        <TableTh>Target ($)</TableTh>
-                        <TableTh>Current ($)</TableTh>
-                        <TableTh>Delta (%)</TableTh>
-                        <TableTh>Delta ($)</TableTh>
-                        <TableTh>Projected ($)</TableTh>
-                        <TableTh>Projected (%)</TableTh>
-                        <TableTh>Amount to Buy</TableTh>
+                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Asset Class</TableTh>
+                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Target (%)</TableTh>
+                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Current (%)</TableTh>
+                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Target ($)</TableTh>
+                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Current ($)</TableTh>
+                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Delta (%)</TableTh>
+                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Delta ($)</TableTh>
+                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Projected ($)</TableTh>
+                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Projected (%)</TableTh>
+                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Amount to Buy</TableTh>
                     </TableTr>
                 </TableThead>
                 <TableTbody>
-                    <TableTr>
-                        <TableTd>To Invest</TableTd>
+                    <TableTr style={{ backgroundColor: 'var(--mantine-color-blue-0)' }}>
+                        <TableTd style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--mantine-color-blue-7)' }}>
+                            💰 Amount to Invest
+                        </TableTd>
                         <TableTd colSpan={9}>
                             <Center>
                                 <NumberField
                                     isCurrency
                                     value={toInvest}
                                     onValueChange={handleToInvestChange}
+                                    size="md"
+                                    style={{ 
+                                        maxWidth: '200px',
+                                        fontWeight: 600
+                                    }}
                                 />
                             </Center>
                         </TableTd>

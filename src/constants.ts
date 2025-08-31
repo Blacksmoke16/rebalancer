@@ -7,7 +7,7 @@ export const STORAGE = {
 
 // UI configuration
 export const UI = {
-    INPUT_SIZE: 'xs',
+    INPUT_SIZE: 'sm',
     ICON_SIZE: 16,
     LARGE_ICON_SIZE: 18,
 } as const;

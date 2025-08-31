@@ -13,7 +13,7 @@ export function useAccountForm({ accounts, onAccountsChange }: UseAccountFormPro
     const [isLoading, setIsLoading] = useState(false);
     
     const form = useForm({
-        mode: 'uncontrolled',
+        mode: 'controlled',
         initialValues: { accounts },
         validateInputOnChange: true,
         validate: {

@@ -50,7 +50,7 @@ export const AssetClassItem = memo<AssetClassItemProps>(function AssetClassItem(
                             onRemoveFund={onRemoveFund}
                         />
                         <Button
-                            size="xs"
+                            size="sm"
                             className={classes.fundsSection}
                             onClick={() => { onAddFund(assetIdx); }}
                         >

@@ -9,16 +9,18 @@ export const PortfolioInputTable = memo(function PortfolioInputTable() {
     const { accounts, portfolio } = usePortfolioContext();
     return (
         <ScrollArea>
-            <Paper p="xl" withBorder>
+            <Paper p="xl" withBorder shadow="sm">
                 <Table withColumnBorders withTableBorder>
                     <TableThead>
                         <TableTr>
-                            <TableTh>Asset Class</TableTh>
-                            <TableTh>Ticker</TableTh>
+                            <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Asset Class</TableTh>
+                            <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Ticker</TableTh>
                             {accounts.map((account) => (
-                                <TableTh key={account.key}>{account.name}</TableTh>
+                                <TableTh key={account.key} style={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                                    {account.name}
+                                </TableTh>
                             ))}
-                            <TableTh>Asset Class Totals</TableTh>
+                            <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Asset Class Totals</TableTh>
                         </TableTr>
                     </TableThead>
                     <TableTbody>

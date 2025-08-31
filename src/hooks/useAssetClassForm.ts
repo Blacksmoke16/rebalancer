@@ -11,7 +11,7 @@ interface UseAssetClassFormProps {
 
 export function useAssetClassForm({ portfolio, onPortfolioChange }: UseAssetClassFormProps) {
     const form = useForm({
-        mode: 'uncontrolled',
+        mode: 'controlled',
         initialValues: { portfolio },
         validateInputOnChange: true,
         validate: {
@@ -107,8 +107,8 @@ export function useAssetClassForm({ portfolio, onPortfolioChange }: UseAssetClas
     }, [form]);
 
     const getTotalAllocation = useCallback(() => {
-        return form.getValues().portfolio.reduce((sum, ac) => sum + (ac.allocation || 0), 0);
-    }, [form]);
+        return form.values.portfolio.reduce((sum, ac) => sum + (ac.allocation || 0), 0);
+    }, [form.values.portfolio]);
 
     return {
         form,
