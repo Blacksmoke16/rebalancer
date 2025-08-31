@@ -2,6 +2,7 @@
   "name": "rebalancer",
   "compatibility_date": "2025-08-31",
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
+    "binding": "ASSETS"
   }
 }
