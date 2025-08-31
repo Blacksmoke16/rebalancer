@@ -1,0 +1,11 @@
+.container {
+  min-width: 300px;
+}
+
+.accountItem {
+  margin-top: var(--mantine-spacing-md);
+}
+
+.actionButtons {
+  margin-top: var(--mantine-spacing-md);
+}
