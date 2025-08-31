@@ -1,69 +1,58 @@
-import { ActionIcon, Button, Group, Paper, TextInput, Title } from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { randomId } from '@mantine/hooks';
-import { IconTrash } from '@tabler/icons-react';
-import { useEffect } from 'react';
+import { Button, Group, Paper, Title } from '@mantine/core';
+import { memo } from 'react';
 import { Account } from '../types';
+import { useAccountForm } from '../hooks/useAccountForm';
+import { AccountNameInput, DeleteButton, FieldGroup } from './ui/FormFields';
+import classes from './AccountsSettings.module.css';
 
 interface AccountsSettingsProps {
     accounts: Account[];
     onAccountsChange: (accounts: Account[]) => void;
 }
 
-export function AccountsSettings({ accounts, onAccountsChange }: AccountsSettingsProps) {
-    const accountForm = useForm({
-        mode: 'uncontrolled',
-        initialValues: {
-            accounts,
-        },
-        validateInputOnChange: true,
-        validate: {
-            accounts: {
-                name: (value: string) => value.trim().length === 0 ? 'Required' : null,
-            },
-        },
-    });
-
-    // Update form when accounts prop changes (e.g., after import)
-    useEffect(() => {
-        accountForm.setValues({ accounts });
-        accountForm.setInitialValues({ accounts });
-    }, [accounts]); // Remove accountForm from deps to prevent infinite loop
+export const AccountsSettings = memo<AccountsSettingsProps>(function AccountsSettings({ 
+    accounts, 
+    onAccountsChange 
+}) {
+    const {
+        form,
+        handleSubmit,
+        addAccount,
+        removeAccount,
+        isLoading,
+    } = useAccountForm({ accounts, onAccountsChange });
 
     return (
-        <Paper shadow="xl" withBorder p="xl" style={{ minWidth: '300px' }}>
+        <Paper shadow="xl" withBorder p="xl" className={classes.container}>
             <Title order={3}>Accounts</Title>
-            <form
-                onSubmit={accountForm.onSubmit((values) => {
-                    onAccountsChange(values.accounts);
-                    accountForm.setInitialValues({ accounts: values.accounts });
-                    accountForm.reset();
-                })}>
-                {accountForm.getValues().accounts.map((a, idx) => (
-                    <Group key={a.key} mt="md">
-                        <TextInput
-                            placeholder="Account name"
-                            {...accountForm.getInputProps(`accounts.${idx}.name`)}
+            <form onSubmit={form.onSubmit(handleSubmit)}>
+                {form.getValues().accounts.map((account, idx) => (
+                    <FieldGroup key={account.key} className={classes.accountItem}>
+                        <AccountNameInput
+                            {...form.getInputProps(`accounts.${idx}.name`)}
                         />
-                        <ActionIcon color="red" onClick={() => { accountForm.removeListItem('accounts', idx); }}>
-                            <IconTrash size={16}/>
-                        </ActionIcon>
-                    </Group>
+                        <DeleteButton 
+                            onClick={() => removeAccount(idx)}
+                            aria-label={`Delete account ${account.name || 'account'}`}
+                        />
+                    </FieldGroup>
                 ))}
-                <Group mt="md" justify="space-evenly">
-                    <Button
-                        onClick={() => {
-                            accountForm.insertListItem('accounts', { name: '', key: randomId() });
-                            accountForm.clearFieldError('accounts');
-                        }}
+                <Group className={classes.actionButtons} justify="space-evenly">
+                    <Button 
+                        onClick={addAccount}
+                        disabled={isLoading}
                     >
                         Add Account
                     </Button>
-                    <Button disabled={!accountForm.isValid() || !accountForm.isDirty()} type="submit">
+                    <Button 
+                        disabled={!form.isValid() || !form.isDirty() || isLoading} 
+                        loading={isLoading}
+                        type="submit"
+                    >
                         Save
                     </Button>
                 </Group>
             </form>
         </Paper>
     );
-}
+});

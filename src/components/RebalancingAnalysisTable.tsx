@@ -1,34 +1,48 @@
-import { Center, NumberFormatter, Paper, Table, TableTd, TableTh, TableThead, TableTr, Text } from '@mantine/core';
-import { DELTA_COLORS, FORMATTING } from '../constants';
-import { AssetClass } from '../types';
+import { Center, Paper, Table, TableTbody, TableTd, TableTh, TableThead, TableTr } from '@mantine/core';
+import { memo, useMemo } from 'react';
+import { usePortfolioContext } from '../contexts/PortfolioContext';
+import { CurrencyCell, DeltaCell, PercentageCell } from './ui/FormatCells';
 import { NumberField } from './ui/NumberField';
 
-interface RebalancingAnalysisTableProps {
-    portfolio: AssetClass[];
-    toInvest: number;
-    onToInvestChange: (value: number) => void;
-    currentPercentage: (assetClass: AssetClass) => number;
-    targetDollars: (assetClass: AssetClass) => number;
-    currentForAssetClass: (assetClass: AssetClass) => number;
-    amountToBuy: (assetClass: AssetClass) => number;
-    totalDollars: () => number;
-}
+export const RebalancingAnalysisTable = memo(function RebalancingAnalysisTable() {
+    const { 
+        portfolio,
+        toInvest,
+        setToInvest,
+        calculations: {
+            currentPercentage,
+            targetDollars,
+            currentForAssetClass,
+            amountToBuy,
+            totalDollars
+        }
+    } = usePortfolioContext();
 
-export function RebalancingAnalysisTable({ 
-    portfolio,
-    toInvest,
-    onToInvestChange,
-    currentPercentage,
-    targetDollars,
-    currentForAssetClass,
-    amountToBuy,
-    totalDollars
-}: RebalancingAnalysisTableProps) {
-    const getDeltaColor = (value: number) => {
-        if (value > 0) return DELTA_COLORS.POSITIVE;
-        if (value < 0) return DELTA_COLORS.NEGATIVE;
-        return DELTA_COLORS.NEUTRAL;
-    };
+    // Pre-calculate values for all asset classes to avoid repeated function calls
+    const assetCalculations = useMemo(() => {
+        const totalPortfolioValue = totalDollars() + toInvest;
+        
+        return portfolio.map(assetClass => {
+            const current = currentForAssetClass(assetClass);
+            const target = targetDollars(assetClass);
+            const currentPercent = currentPercentage(assetClass) * 100;
+            const toBuy = amountToBuy(assetClass);
+            const projected = current + toBuy;
+            const projectedPercent = totalPortfolioValue > 0 ? (projected / totalPortfolioValue) * 100 : 0;
+            
+            return {
+                assetClass,
+                current,
+                target,
+                currentPercent,
+                toBuy,
+                projected,
+                projectedPercent,
+                deltaPercent: currentPercent - assetClass.allocation,
+                deltaDollars: target - current,
+            };
+        });
+    }, [portfolio, currentForAssetClass, targetDollars, currentPercentage, amountToBuy, totalDollars, toInvest]);
 
     return (
         <Paper shadow="xl" withBorder p="xl">
@@ -42,10 +56,12 @@ export function RebalancingAnalysisTable({
                         <TableTh>Current ($)</TableTh>
                         <TableTh>Delta (%)</TableTh>
                         <TableTh>Delta ($)</TableTh>
-                        <TableTh>Projected (%)</TableTh>
                         <TableTh>Projected ($)</TableTh>
+                        <TableTh>Projected (%)</TableTh>
                         <TableTh>Amount to Buy</TableTh>
                     </TableTr>
+                </TableThead>
+                <TableTbody>
                     <TableTr>
                         <TableTd>To Invest</TableTd>
                         <TableTd colSpan={9}>
@@ -53,82 +69,55 @@ export function RebalancingAnalysisTable({
                                 <NumberField
                                     isCurrency
                                     value={toInvest}
-                                    onValueChange={onToInvestChange}
+                                    onValueChange={setToInvest}
                                 />
                             </Center>
                         </TableTd>
                     </TableTr>
-                    {
-                        portfolio.map((assetClass) => {
-                            return (
-                                <TableTr key={assetClass.name}>
-                                    <TableTd>{assetClass.name}</TableTd>
-                                    <TableTd>
-                                        <NumberFormatter 
-                                            suffix={FORMATTING.PERCENT_SUFFIX} 
-                                            value={assetClass.allocation} 
-                                            decimalScale={FORMATTING.DECIMAL_PLACES.PERCENTAGE}
-                                        />
-                                    </TableTd>
-                                    <TableTd>
-                                        <NumberFormatter suffix={FORMATTING.PERCENT_SUFFIX} value={currentPercentage(assetClass) * 100} decimalScale={FORMATTING.DECIMAL_PLACES.PERCENTAGE}/>
-                                    </TableTd>
-                                    <TableTd>
-                                        <NumberFormatter prefix={FORMATTING.DOLLAR_PREFIX} thousandSeparator={FORMATTING.THOUSAND_SEPARATOR} value={targetDollars(assetClass)} decimalScale={FORMATTING.DECIMAL_PLACES.CURRENCY}/>
-                                    </TableTd>
-                                    <TableTd>
-                                        <NumberFormatter prefix={FORMATTING.DOLLAR_PREFIX} thousandSeparator={FORMATTING.THOUSAND_SEPARATOR} value={
-                                            currentForAssetClass(assetClass)
-                                        } decimalScale={FORMATTING.DECIMAL_PLACES.CURRENCY}/>
-                                    </TableTd>
-                                    <TableTd>
-                                        {(() => {
-                                            const deltaPercent = (currentPercentage(assetClass) * 100) - assetClass.allocation;
-                                            return (
-                                                <Text c={getDeltaColor(deltaPercent)}>
-                                                    <NumberFormatter 
-                                                        suffix={FORMATTING.PERCENT_SUFFIX} 
-                                                        value={deltaPercent} 
-                                                        decimalScale={FORMATTING.DECIMAL_PLACES.PERCENTAGE}
-                                                        allowNegative
-                                                    />
-                                                </Text>
-                                            );
-                                        })()}
-                                    </TableTd>
-                                    <TableTd>
-                                        {(() => {
-                                            const deltaDollars = targetDollars(assetClass) - currentForAssetClass(assetClass);
-                                            return (
-                                                <Text c={getDeltaColor(deltaDollars)}>
-                                                    <NumberFormatter 
-                                                        prefix={FORMATTING.DOLLAR_PREFIX} 
-                                                        thousandSeparator={FORMATTING.THOUSAND_SEPARATOR} 
-                                                        allowNegative 
-                                                        value={deltaDollars}
-                                                        decimalScale={FORMATTING.DECIMAL_PLACES.CURRENCY}
-                                                    />
-                                                </Text>
-                                            );
-                                        })()}
-                                    </TableTd>
-                                    <TableTd>
-                                        <NumberFormatter prefix={FORMATTING.DOLLAR_PREFIX} thousandSeparator={FORMATTING.THOUSAND_SEPARATOR} value={
-                                            currentForAssetClass(assetClass) + amountToBuy(assetClass)
-                                        } decimalScale={FORMATTING.DECIMAL_PLACES.CURRENCY}/>
-                                    </TableTd>
-                                    <TableTd>
-                                        <NumberFormatter suffix={FORMATTING.PERCENT_SUFFIX} value={(((currentForAssetClass(assetClass) + amountToBuy(assetClass)) / (totalDollars() + toInvest)) * 100) || 0} decimalScale={FORMATTING.DECIMAL_PLACES.PERCENTAGE}/>
-                                    </TableTd>
-                                    <TableTd>
-                                        <NumberFormatter prefix={FORMATTING.DOLLAR_PREFIX} thousandSeparator={FORMATTING.THOUSAND_SEPARATOR} value={amountToBuy(assetClass)} decimalScale={FORMATTING.DECIMAL_PLACES.CURRENCY}/>
-                                    </TableTd>
-                                </TableTr>
-                            );
-                        })
-                    }
-                </TableThead>
+                    {assetCalculations.map(({ 
+                        assetClass, 
+                        current, 
+                        target, 
+                        currentPercent, 
+                        toBuy, 
+                        projected, 
+                        projectedPercent, 
+                        deltaPercent, 
+                        deltaDollars 
+                    }) => (
+                        <TableTr key={assetClass.name}>
+                            <TableTd>{assetClass.name}</TableTd>
+                            <TableTd>
+                                <PercentageCell value={assetClass.allocation} />
+                            </TableTd>
+                            <TableTd>
+                                <PercentageCell value={currentPercent} />
+                            </TableTd>
+                            <TableTd>
+                                <CurrencyCell value={target} />
+                            </TableTd>
+                            <TableTd>
+                                <CurrencyCell value={current} />
+                            </TableTd>
+                            <TableTd>
+                                <DeltaCell value={deltaPercent} type="percentage" />
+                            </TableTd>
+                            <TableTd>
+                                <DeltaCell value={deltaDollars} type="currency" />
+                            </TableTd>
+                            <TableTd>
+                                <CurrencyCell value={projected} />
+                            </TableTd>
+                            <TableTd>
+                                <PercentageCell value={projectedPercent} />
+                            </TableTd>
+                            <TableTd>
+                                <CurrencyCell value={toBuy} />
+                            </TableTd>
+                        </TableTr>
+                    ))}
+                </TableTbody>
             </Table>
         </Paper>
     );
-}
+});

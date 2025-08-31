@@ -56,12 +56,15 @@ export const DELTA_COLORS = {
 export const FILE_PATTERNS = {
     BACKUP_PREFIX: 'rebalancer-backup-',
     BACKUP_EXTENSION: '.json',
-    DATE_FORMAT: 'YYYY-MM-DD', // Used in backup filename
 } as const;
 
-// Default allocations (can be moved to utils if these become configurable)
-export const DEFAULT_ALLOCATIONS = {
-    US_STOCKS: 60,
-    INTERNATIONAL_STOCKS: 30,
-    BONDS: 10,
+
+// Form validation
+export const VALIDATION = {
+    MIN_PERCENTAGE: 0,
+    MAX_PERCENTAGE: 100,
+    TARGET_ALLOCATION_SUM: 100,
+    MIN_ASSET_CLASSES: 1,
+    MIN_ACCOUNTS: 1,
+    MIN_FUNDS_PER_ASSET_CLASS: 1,
 } as const;

@@ -1,28 +1,33 @@
+import type { AccountId, AssetClassId, DollarAmount, FundTicker, Percentage } from './types/branded';
+
 export interface Account {
     name: string;
-    key: string;
+    key: AccountId;
 }
 
-/* Key representing name of an account and value being the value of the fund in that account */
-export type FundValues = Record<string, number>;
+export type AccountBalances = Record<AccountId, DollarAmount>;
 
 export interface Fund {
-    ticker: string;
-    values: FundValues;
+    ticker: FundTicker;
+    values: AccountBalances;
     key: string;
 }
 
 export interface AssetClass {
     name: string;
-    allocation: number;
+    allocation: Percentage;
     funds: Fund[];
-    key: string;
+    key: AssetClassId;
 }
 
 export interface PortfolioData {
     accounts: Account[];
     portfolio: AssetClass[];
-    toInvest: number;
+    toInvest: DollarAmount;
     version: string;
     lastSaved: string;
 }
+
+export type DeltaCellType = 'currency' | 'percentage';
+
+export type AlignmentType = 'left' | 'right' | 'center';

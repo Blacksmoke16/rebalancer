@@ -1,22 +1,21 @@
 import { Alert, Button, FileInput, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconDownload, IconTrash, IconUpload } from '@tabler/icons-react';
-import { useState } from 'react';
+import { memo, useCallback, useState } from 'react';
+import { usePortfolioContext } from '../contexts/PortfolioContext';
 import { clearPortfolioData, exportPortfolioData, importPortfolioData } from '../storage';
 import { Account, AssetClass } from '../types';
 
 interface DataManagementProps {
-    accounts: Account[];
-    portfolio: AssetClass[];
-    toInvest: number;
     onDataImported: (accounts: Account[], portfolio: AssetClass[], toInvest: number) => void;
 }
 
-export function DataManagement({ accounts, portfolio, toInvest, onDataImported }: DataManagementProps) {
+export const DataManagement = memo<DataManagementProps>(function DataManagement({ onDataImported }) {
+    const { accounts, portfolio, toInvest, resetToDefaults } = usePortfolioContext();
     const [isImporting, setIsImporting] = useState(false);
     const [importFile, setImportFile] = useState<File | null>(null);
 
-    const handleExport = () => {
+    const handleExport = useCallback(() => {
         try {
             exportPortfolioData(accounts, portfolio, toInvest);
             notifications.show({
@@ -31,9 +30,9 @@ export function DataManagement({ accounts, portfolio, toInvest, onDataImported }
                 color: 'red',
             });
         }
-    };
+    }, [accounts, portfolio, toInvest]);
 
-    const handleImport = async () => {
+    const handleImport = useCallback(async () => {
         if (!importFile) return;
 
         setIsImporting(true);
@@ -57,15 +56,19 @@ export function DataManagement({ accounts, portfolio, toInvest, onDataImported }
         } finally {
             setIsImporting(false);
         }
-    };
+    }, [importFile, onDataImported]);
 
-    const handleClearData = () => {
+    const handleClearData = useCallback(() => {
         if (confirm('Are you sure you want to clear all data? This action cannot be undone. Consider exporting your data first.')) {
             clearPortfolioData();
-            // Reload the page to reset to defaults
-            window.location.reload();
+            resetToDefaults();
+            notifications.show({
+                title: 'Data Cleared',
+                message: 'All portfolio data has been reset to defaults.',
+                color: 'green'
+            });
         }
-    };
+    }, [resetToDefaults]);
 
     return (
         <Paper shadow="xl" withBorder p="xl">
@@ -138,4 +141,4 @@ export function DataManagement({ accounts, portfolio, toInvest, onDataImported }
             </Stack>
         </Paper>
     );
-}
+});
