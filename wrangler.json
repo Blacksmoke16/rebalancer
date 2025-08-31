@@ -1,5 +1,6 @@
 {
   "name": "rebalancer",
+  "main": "src/worker.js",
   "compatibility_date": "2025-08-31",
   "assets": {
     "directory": "./dist",
