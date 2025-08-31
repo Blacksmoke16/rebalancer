@@ -1,0 +1,9 @@
+.errorText {
+  font-family: monospace;
+}
+
+.errorDetails {
+  font-size: 12px;
+  font-family: monospace;
+  opacity: 0.7;
+}

@@ -1,5 +1,6 @@
 import { Button, Stack, Text, Title } from '@mantine/core';
 import { Component, ReactNode } from 'react';
+import commonClasses from '../styles/common.module.css';
 
 interface Props {
     children: ReactNode;
@@ -35,7 +36,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     <Title order={2}>Something went wrong</Title>
                     <Text c="dimmed">The application encountered an unexpected error.</Text>
                     {this.state.error && (
-                        <Text size="sm" c="red" style={{ fontFamily: 'monospace' }}>
+                        <Text size="sm" c="red" className={commonClasses.errorText}>
                             {this.state.error.message}
                         </Text>
                     )}

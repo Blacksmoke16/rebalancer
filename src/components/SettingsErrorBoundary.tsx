@@ -1,5 +1,6 @@
 import { Alert, Button, Stack } from '@mantine/core';
 import { Component, ReactNode } from 'react';
+import commonClasses from '../styles/common.module.css';
 
 interface Props {
     children: ReactNode;
@@ -44,7 +45,7 @@ export class SettingsErrorBoundary extends Component<Props, State> {
                             There was an error loading the settings. Please try refreshing the page or reset to continue.
                         </div>
                         {this.state.error && import.meta.env.DEV && (
-                            <div style={{ fontSize: '12px', fontFamily: 'monospace', opacity: 0.7 }}>
+                            <div className={commonClasses.errorDetails}>
                                 {this.state.error.message}
                             </div>
                         )}

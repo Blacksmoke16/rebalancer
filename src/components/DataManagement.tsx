@@ -6,6 +6,7 @@ import { usePortfolioContext } from '../contexts/PortfolioContext';
 import { clearPortfolioData, exportPortfolioData, importPortfolioData } from '../storage';
 import { Account, AssetClass } from '../types';
 import { DollarAmount } from '../types/branded';
+import commonClasses from '../styles/common.module.css';
 
 interface DataManagementProps {
     onDataImported: (accounts: Account[], portfolio: AssetClass[], toInvest: DollarAmount) => void;
@@ -100,7 +101,7 @@ export const DataManagement = memo<DataManagementProps>(function DataManagement(
                             accept=".json"
                             value={importFile}
                             onChange={setImportFile}
-                            style={{ flex: 1 }}
+                            className={commonClasses.flexGrow}
                         />
                         <Button
                             leftSection={<IconUpload size={16} />}

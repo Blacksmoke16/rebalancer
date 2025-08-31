@@ -4,6 +4,7 @@ import { usePortfolioContext } from '../contexts/PortfolioContext';
 import { AccountTotalsRow } from './ui/AccountTotalsRow';
 import { AssetClassHeaderRow } from './ui/AssetClassHeaderRow';
 import { FundDataRow } from './ui/FundDataRow';
+import commonClasses from '../styles/common.module.css';
 
 export const PortfolioInputTable = memo(function PortfolioInputTable() {
     const { accounts, portfolio } = usePortfolioContext();
@@ -13,14 +14,14 @@ export const PortfolioInputTable = memo(function PortfolioInputTable() {
                 <Table withColumnBorders withTableBorder>
                     <TableThead>
                         <TableTr>
-                            <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Asset Class</TableTh>
-                            <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Ticker</TableTh>
+                            <TableTh className={commonClasses.tableHeader}>Asset Class</TableTh>
+                            <TableTh className={commonClasses.tableHeader}>Ticker</TableTh>
                             {accounts.map((account) => (
-                                <TableTh key={account.key} style={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                                <TableTh key={account.key} className={commonClasses.tableHeader}>
                                     {account.name}
                                 </TableTh>
                             ))}
-                            <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Asset Class Totals</TableTh>
+                            <TableTh className={commonClasses.tableHeader}>Asset Class Totals</TableTh>
                         </TableTr>
                     </TableThead>
                     <TableTbody>

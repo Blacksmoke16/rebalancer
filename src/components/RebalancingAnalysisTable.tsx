@@ -4,6 +4,8 @@ import { usePortfolioContext } from '../contexts/PortfolioContext';
 import { CurrencyCell, DeltaCell, PercentageCell } from './ui/FormatCells';
 import { NumberField } from './ui/NumberField';
 import { createDollarAmount } from '../types/branded';
+import classes from './RebalancingAnalysisTable.module.css';
+import commonClasses from '../styles/common.module.css';
 
 export const RebalancingAnalysisTable = memo(function RebalancingAnalysisTable() {
     const { 
@@ -54,21 +56,21 @@ export const RebalancingAnalysisTable = memo(function RebalancingAnalysisTable()
             <Table withColumnBorders withTableBorder>
                 <TableThead>
                     <TableTr>
-                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Asset Class</TableTh>
-                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Target (%)</TableTh>
-                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Current (%)</TableTh>
-                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Target ($)</TableTh>
-                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Current ($)</TableTh>
-                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Delta (%)</TableTh>
-                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Delta ($)</TableTh>
-                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Projected ($)</TableTh>
-                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Projected (%)</TableTh>
-                        <TableTh style={{ fontWeight: 600, fontSize: '0.875rem' }}>Amount to Buy</TableTh>
+                        <TableTh className={commonClasses.tableHeader}>Asset Class</TableTh>
+                        <TableTh className={commonClasses.tableHeader}>Target (%)</TableTh>
+                        <TableTh className={commonClasses.tableHeader}>Current (%)</TableTh>
+                        <TableTh className={commonClasses.tableHeader}>Target ($)</TableTh>
+                        <TableTh className={commonClasses.tableHeader}>Current ($)</TableTh>
+                        <TableTh className={commonClasses.tableHeader}>Delta (%)</TableTh>
+                        <TableTh className={commonClasses.tableHeader}>Delta ($)</TableTh>
+                        <TableTh className={commonClasses.tableHeader}>Projected ($)</TableTh>
+                        <TableTh className={commonClasses.tableHeader}>Projected (%)</TableTh>
+                        <TableTh className={commonClasses.tableHeader}>Amount to Buy</TableTh>
                     </TableTr>
                 </TableThead>
                 <TableTbody>
-                    <TableTr style={{ backgroundColor: 'var(--mantine-color-blue-0)' }}>
-                        <TableTd style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--mantine-color-blue-7)' }}>
+                    <TableTr className={classes.investRow}>
+                        <TableTd className={classes.investLabel}>
                             💰 Amount to Invest
                         </TableTd>
                         <TableTd colSpan={9}>
@@ -78,10 +80,7 @@ export const RebalancingAnalysisTable = memo(function RebalancingAnalysisTable()
                                     value={toInvest}
                                     onValueChange={handleToInvestChange}
                                     size="md"
-                                    style={{ 
-                                        maxWidth: '200px',
-                                        fontWeight: 600
-                                    }}
+                                    className={classes.investField}
                                 />
                             </Center>
                         </TableTd>

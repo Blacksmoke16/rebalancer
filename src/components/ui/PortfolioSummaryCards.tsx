@@ -7,6 +7,7 @@ import {
 import { memo } from "react";
 import { usePortfolioContext } from "../../contexts/PortfolioContext";
 import { CurrencyCell } from "./FormatCells";
+import commonClasses from "../../styles/common.module.css";
 
 interface SummaryCardProps {
   title: string;
@@ -78,7 +79,7 @@ export const PortfolioSummaryCards = memo(function PortfolioSummaryCards() {
 
 
   return (
-    <SimpleGrid cols={{ base: 1, sm: 3, lg: 3 }} spacing="md" style={{ justifyContent: 'center' }}>
+    <SimpleGrid cols={{ base: 1, sm: 3, lg: 3 }} spacing="md" className={commonClasses.centeredGrid}>
       <SummaryCard
         title="Total Portfolio Value"
         value={<CurrencyCell value={totalValue} />}

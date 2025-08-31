@@ -5,6 +5,7 @@ import { FORMATTING } from '../../constants';
 import { validateAndTransform } from '../../utils/validation';
 import { ValidatedInput } from './ValidatedInput';
 import { createPercentage, Percentage } from '../../types/branded';
+import commonClasses from '../../styles/common.module.css';
 
 // Reusable ticker input with validation
 interface TickerInputProps extends Omit<TextInputProps, 'onChange'> {
@@ -16,7 +17,7 @@ export const TickerInput = memo<TickerInputProps>(function TickerInput({ value =
     return (
         <ValidatedInput
             placeholder="VTI"
-            style={{ textTransform: 'uppercase' }}
+            className={commonClasses.uppercaseInput}
             value={value}
             onChange={onChange}
             validationType="ticker"

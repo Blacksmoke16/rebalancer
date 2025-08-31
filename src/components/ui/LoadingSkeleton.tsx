@@ -1,5 +1,6 @@
 import { Paper, Skeleton, Stack } from '@mantine/core';
 import { memo } from 'react';
+import classes from './LoadingSkeleton.module.css';
 
 interface LoadingSkeletonProps {
     height?: number;
@@ -17,6 +18,7 @@ export const LoadingSkeleton = memo<LoadingSkeletonProps>(function LoadingSkelet
             shadow="xl" 
             withBorder={withBorder} 
             p="xl" 
+            className={classes.skeletonPaper}
             style={{ minHeight: height }}
         >
             <Stack gap="md">
