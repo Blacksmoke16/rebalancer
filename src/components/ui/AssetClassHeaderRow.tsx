@@ -3,6 +3,7 @@ import { Fragment, memo } from 'react';
 import { Account, AssetClass } from '../../types';
 import { usePortfolioContext } from '../../contexts/PortfolioContext';
 import { CurrencyCell } from './FormatCells';
+import styles from './AssetClassHeaderRow.module.css';
 
 interface AssetClassHeaderRowProps {
     assetClass: AssetClass;
@@ -17,20 +18,26 @@ export const AssetClassHeaderRow = memo<AssetClassHeaderRowProps>(function Asset
             <TableTr>
                 <TableTd/>
             </TableTr>
-            <TableTr>
+            <TableTr className={styles.headerRow}>
                 <TableTd>
-                    {assetClass.name}
+                    <div className={styles.assetClassName}>
+                        {assetClass.name}
+                    </div>
                 </TableTd>
                 <TableTd/>
                 {accounts.map((account) => (
                     <TableTd key={`${assetClass.name}-${account.key}-total`}>
                         <Center>
-                            <CurrencyCell value={totalForAssetClassAccount(assetClass.name, account.name)} />
+                            <div className={styles.totalCell}>
+                                <CurrencyCell value={totalForAssetClassAccount(assetClass.name, account.name)} />
+                            </div>
                         </Center>
                     </TableTd>
                 ))}
                 <TableTd>
-                    <CurrencyCell value={currentForAssetClass(assetClass)} align="right" />
+                    <div className={styles.totalCell}>
+                        <CurrencyCell value={currentForAssetClass(assetClass)} align="right" />
+                    </div>
                 </TableTd>
             </TableTr>
         </Fragment>

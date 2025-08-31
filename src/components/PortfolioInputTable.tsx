@@ -31,7 +31,7 @@ export const PortfolioInputTable = memo(function PortfolioInputTable() {
                                             {isFirstFund && (
                                                 <AssetClassHeaderRow 
                                                     assetClass={assetClass} 
-                                                    accounts={accounts} 
+                                                    accounts={accounts}
                                                 />
                                             )}
                                             <FundDataRow

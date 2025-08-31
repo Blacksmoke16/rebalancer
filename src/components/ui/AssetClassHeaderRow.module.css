@@ -1,0 +1,10 @@
+.headerRow {
+  background-color: light-dark(
+    var(--mantine-color-gray-4),
+    var(--mantine-color-gray-7)
+  ) !important;
+}
+
+.assetClassName {
+  font-weight: 600;
+}
