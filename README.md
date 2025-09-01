@@ -13,7 +13,7 @@ A privacy-focused portfolio rebalancing tool that helps you optimize your invest
 - **Privacy First**: All data is stored locally in your browser - nothing is sent to servers
 - **Real-time Calculations**: Instant updates as you modify your portfolio or investment amounts
 
-## 🏗️ Development
+## Development
 
 ### Prerequisites
 
