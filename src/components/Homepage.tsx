@@ -4,7 +4,6 @@ import {
   IconSettings2,
   IconFileImport,
   IconCalculator,
-  IconTargetArrow,
 } from "@tabler/icons-react";
 import { memo } from "react";
 

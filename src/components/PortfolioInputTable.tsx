@@ -2,6 +2,7 @@ import {
   Paper,
   ScrollArea,
   Table,
+  TableCaption,
   TableTbody,
   TableTh,
   TableThead,
@@ -20,6 +21,7 @@ export const PortfolioInputTable = memo(function PortfolioInputTable() {
     <ScrollArea>
       <Paper p="xl" withBorder shadow="sm">
         <Table withColumnBorders withTableBorder>
+          <TableCaption>Holdings by asset class and account</TableCaption>
           <TableThead>
             <TableTr>
               <TableTh className={commonClasses.tableHeader}>

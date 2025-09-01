@@ -115,9 +115,10 @@ export function AppContent() {
               hiddenFrom="sm"
               size="sm"
             />
-            <Title order={1}>Portfolio Rebalancer</Title>
+            <Title order={3}>Portfolio Rebalancer</Title>
           </Group>
           <ActionIcon
+            visibleFrom="md"
             component="a"
             href="https://ko-fi.com/blacksmoke16/tip"
             target="_blank"
@@ -141,6 +142,7 @@ export function AppContent() {
             onClick={(e) => {
               e.preventDefault();
               handleTabChange("home");
+              toggle();
             }}
           />
           <NavLink
@@ -151,6 +153,7 @@ export function AppContent() {
             onClick={(e) => {
               e.preventDefault();
               handleTabChange("portfolio");
+              toggle();
             }}
           />
           <NavLink
@@ -161,6 +164,7 @@ export function AppContent() {
             onClick={(e) => {
               e.preventDefault();
               handleTabChange("settings");
+              toggle();
             }}
           />
         </AppShell.Section>

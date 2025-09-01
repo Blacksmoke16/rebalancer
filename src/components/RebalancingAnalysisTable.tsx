@@ -1,7 +1,9 @@
 import {
   Center,
   Paper,
+  ScrollArea,
   Table,
+  TableCaption,
   TableTbody,
   TableTd,
   TableTh,
@@ -74,102 +76,111 @@ export const RebalancingAnalysisTable = memo(
     ]);
 
     return (
-      <Paper shadow="sm" withBorder p="xl">
-        <Table withColumnBorders withTableBorder>
-          <TableThead>
-            <TableTr>
-              <TableTh className={commonClasses.tableHeader}>
-                Asset Class
-              </TableTh>
-              <TableTh className={commonClasses.tableHeader}>
-                Target (%)
-              </TableTh>
-              <TableTh className={commonClasses.tableHeader}>
-                Current (%)
-              </TableTh>
-              <TableTh className={commonClasses.tableHeader}>
-                Target ($)
-              </TableTh>
-              <TableTh className={commonClasses.tableHeader}>
-                Current ($)
-              </TableTh>
-              <TableTh className={commonClasses.tableHeader}>Delta (%)</TableTh>
-              <TableTh className={commonClasses.tableHeader}>Delta ($)</TableTh>
-              <TableTh className={commonClasses.tableHeader}>
-                Projected ($)
-              </TableTh>
-              <TableTh className={commonClasses.tableHeader}>
-                Projected (%)
-              </TableTh>
-              <TableTh className={commonClasses.tableHeader}>
-                Amount to Buy
-              </TableTh>
-            </TableTr>
-          </TableThead>
-          <TableTbody>
-            <TableTr className={classes.investRow}>
-              <TableTd className={classes.investLabel}>
-                💰 Amount to Invest
-              </TableTd>
-              <TableTd colSpan={9}>
-                <Center>
-                  <NumberField
-                    isCurrency
-                    value={toInvest}
-                    onValueChange={handleToInvestChange}
-                    size="md"
-                    className={classes.investField}
-                  />
-                </Center>
-              </TableTd>
-            </TableTr>
-            {assetCalculations.map(
-              ({
-                assetClass,
-                current,
-                target,
-                currentPercent,
-                toBuy,
-                projected,
-                projectedPercent,
-                deltaPercent,
-                deltaDollars,
-              }) => (
-                <TableTr key={assetClass.name}>
-                  <TableTd>{assetClass.name}</TableTd>
-                  <TableTd>
-                    <PercentageCell value={assetClass.allocation} />
-                  </TableTd>
-                  <TableTd>
-                    <PercentageCell value={currentPercent} />
-                  </TableTd>
-                  <TableTd>
-                    <CurrencyCell value={target} />
-                  </TableTd>
-                  <TableTd>
-                    <CurrencyCell value={current} />
-                  </TableTd>
-                  <TableTd>
-                    <DeltaCell value={deltaPercent} type="percentage" />
-                  </TableTd>
-                  <TableTd>
-                    <DeltaCell value={deltaDollars} type="currency" />
-                  </TableTd>
-                  <TableTd>
-                    <CurrencyCell value={projected} />
-                  </TableTd>
-                  <TableTd>
-                    <PercentageCell value={projectedPercent} />
-                  </TableTd>
-                  <TableTd>
-                    <CurrencyCell value={toBuy} />
-                  </TableTd>
-                </TableTr>
-              ),
-            )}
-          </TableTbody>
-        </Table>
-      </Paper>
+      <ScrollArea>
+        <Paper shadow="sm" withBorder p="xl">
+          <Table withColumnBorders withTableBorder>
+            <TableCaption>
+              Shows current vs target allocation and where to invest new funds
+            </TableCaption>
+            <TableThead>
+              <TableTr>
+                <TableTh className={commonClasses.tableHeader}>
+                  Asset Class
+                </TableTh>
+                <TableTh className={commonClasses.tableHeader}>
+                  Target (%)
+                </TableTh>
+                <TableTh className={commonClasses.tableHeader}>
+                  Current (%)
+                </TableTh>
+                <TableTh className={commonClasses.tableHeader}>
+                  Target ($)
+                </TableTh>
+                <TableTh className={commonClasses.tableHeader}>
+                  Current ($)
+                </TableTh>
+                <TableTh className={commonClasses.tableHeader}>
+                  Delta (%)
+                </TableTh>
+                <TableTh className={commonClasses.tableHeader}>
+                  Delta ($)
+                </TableTh>
+                <TableTh className={commonClasses.tableHeader}>
+                  Projected ($)
+                </TableTh>
+                <TableTh className={commonClasses.tableHeader}>
+                  Projected (%)
+                </TableTh>
+                <TableTh className={commonClasses.tableHeader}>
+                  Amount to Buy
+                </TableTh>
+              </TableTr>
+            </TableThead>
+            <TableTbody>
+              <TableTr className={classes.investRow}>
+                <TableTd className={classes.investLabel}>
+                  💰 Amount to Invest
+                </TableTd>
+                <TableTd colSpan={9}>
+                  <Center>
+                    <NumberField
+                      isCurrency
+                      value={toInvest}
+                      onValueChange={handleToInvestChange}
+                      size="md"
+                      className={classes.investField}
+                    />
+                  </Center>
+                </TableTd>
+              </TableTr>
+              {assetCalculations.map(
+                ({
+                  assetClass,
+                  current,
+                  target,
+                  currentPercent,
+                  toBuy,
+                  projected,
+                  projectedPercent,
+                  deltaPercent,
+                  deltaDollars,
+                }) => (
+                  <TableTr key={assetClass.name}>
+                    <TableTd>{assetClass.name}</TableTd>
+                    <TableTd>
+                      <PercentageCell value={assetClass.allocation} />
+                    </TableTd>
+                    <TableTd>
+                      <PercentageCell value={currentPercent} />
+                    </TableTd>
+                    <TableTd>
+                      <CurrencyCell value={target} />
+                    </TableTd>
+                    <TableTd>
+                      <CurrencyCell value={current} />
+                    </TableTd>
+                    <TableTd>
+                      <DeltaCell value={deltaPercent} type="percentage" />
+                    </TableTd>
+                    <TableTd>
+                      <DeltaCell value={deltaDollars} type="currency" />
+                    </TableTd>
+                    <TableTd>
+                      <CurrencyCell value={projected} />
+                    </TableTd>
+                    <TableTd>
+                      <PercentageCell value={projectedPercent} />
+                    </TableTd>
+                    <TableTd>
+                      <CurrencyCell value={toBuy} />
+                    </TableTd>
+                  </TableTr>
+                ),
+              )}
+            </TableTbody>
+          </Table>
+        </Paper>
+      </ScrollArea>
     );
   },
 );
