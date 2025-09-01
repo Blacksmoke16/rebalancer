@@ -1,5 +1,5 @@
-import '@testing-library/jest-dom';
-import { vi, beforeEach } from 'vitest';
+import "@testing-library/jest-dom";
+import { vi, beforeEach } from "vitest";
 
 // Mock localStorage
 const localStorageMock = {
@@ -14,7 +14,7 @@ global.localStorage = localStorageMock as any;
 global.alert = vi.fn();
 
 // Mock window.matchMedia for Mantine
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
     matches: false,

@@ -1,4 +1,5 @@
 /* https://github.com/mantinedev/mantine/issues/7690#issuecomment-2800462513 */
 .withBorder {
-    border-inline-start: calc(0.0625rem * var(--mantine-scale)) solid var(--table-border-color);
+  border-inline-start: calc(0.0625rem * var(--mantine-scale)) solid
+    var(--table-border-color);
 }

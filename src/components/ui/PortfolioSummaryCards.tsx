@@ -1,9 +1,5 @@
 import { Card, Group, SimpleGrid, Text, ThemeIcon } from "@mantine/core";
-import {
-  IconWallet,
-  IconTarget,
-  IconTrendingDown,
-} from "@tabler/icons-react";
+import { IconWallet, IconTarget, IconTrendingDown } from "@tabler/icons-react";
 import { memo } from "react";
 import { usePortfolioContext } from "../../contexts/PortfolioContext";
 import { CurrencyCell } from "./FormatCells";
@@ -77,9 +73,12 @@ export const PortfolioSummaryCards = memo(function PortfolioSummaryCards() {
     { name: "", delta: 0, absDelta: 0 },
   );
 
-
   return (
-    <SimpleGrid cols={{ base: 1, sm: 3, lg: 3 }} spacing="md" className={commonClasses.centeredGrid}>
+    <SimpleGrid
+      cols={{ base: 1, sm: 3, lg: 3 }}
+      spacing="md"
+      className={commonClasses.centeredGrid}
+    >
       <SummaryCard
         title="Total Portfolio Value"
         value={<CurrencyCell value={totalValue} />}
