@@ -200,7 +200,15 @@ export function AppContent() {
               <IconBrandGithub style={{ verticalAlign: "middle" }} size={16} />
             </Anchor>
             <Text size="sm" c="dimmed">
-              Version 0.1.0
+              Version{" "}
+              <Anchor
+                href="https://github.com/Blacksmoke16/rebalancer/blob/master/CHANGELOG.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                c="dimmed"
+              >
+                {__APP_VERSION__}
+              </Anchor>
             </Text>
           </Group>
         </Group>
