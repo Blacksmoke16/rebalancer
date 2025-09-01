@@ -1,4 +1,4 @@
-import { Group } from "@mantine/core";
+import { Group, Stack } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { memo } from "react";
 import { AssetClass, Fund } from "../../types";
@@ -21,20 +21,41 @@ export const FundsList = memo<FundsListProps>(function FundsList({
   return (
     <>
       {funds.map((fund, fundIdx) => (
-        <Group key={fund.key} className={classes.fundItem}>
-          <TickerInput
-            {...form.getInputProps(
-              `portfolio.${assetClassIndex}.funds.${fundIdx}.ticker`,
-            )}
-          />
-          <DeleteButton
-            size="md"
-            onClick={() => {
-              onRemoveFund(assetClassIndex, fundIdx);
-            }}
-            aria-label={`Delete fund ${fund.ticker || "ticker"}`}
-          />
-        </Group>
+        <div key={fund.key} className={classes.fundItem}>
+          {/* Mobile Layout - Stack vertically */}
+          <Stack gap="xs" hiddenFrom="sm">
+            <TickerInput
+              {...form.getInputProps(
+                `portfolio.${assetClassIndex}.funds.${fundIdx}.ticker`,
+              )}
+            />
+            <Group justify="flex-end">
+              <DeleteButton
+                size="md"
+                onClick={() => {
+                  onRemoveFund(assetClassIndex, fundIdx);
+                }}
+                aria-label={`Delete fund ${fund.ticker || "ticker"}`}
+              />
+            </Group>
+          </Stack>
+
+          {/* Desktop Layout - Horizontal group */}
+          <Group visibleFrom="sm">
+            <TickerInput
+              {...form.getInputProps(
+                `portfolio.${assetClassIndex}.funds.${fundIdx}.ticker`,
+              )}
+            />
+            <DeleteButton
+              size="md"
+              onClick={() => {
+                onRemoveFund(assetClassIndex, fundIdx);
+              }}
+              aria-label={`Delete fund ${fund.ticker || "ticker"}`}
+            />
+          </Group>
+        </div>
       ))}
     </>
   );

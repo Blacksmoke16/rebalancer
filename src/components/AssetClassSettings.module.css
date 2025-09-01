@@ -1,5 +1,5 @@
 .container {
-  min-width: 600px;
+  /* Responsive container without min-width constraint */
 }
 
 .assetClassItem {

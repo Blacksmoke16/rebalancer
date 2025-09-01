@@ -50,10 +50,26 @@ export const AssetClassSettings = memo<AssetClassSettingsProps>(
                 />
               ))}
 
+              {/* Mobile Layout - Stack buttons vertically */}
+              <Stack gap="sm" hiddenFrom="sm" mt="lg">
+                <Button variant="light" onClick={addAssetClass} fullWidth>
+                  + Add Asset Class
+                </Button>
+                <Button
+                  disabled={!form.isValid() || !form.isDirty()}
+                  type="submit"
+                  fullWidth
+                >
+                  Save Changes
+                </Button>
+              </Stack>
+
+              {/* Desktop Layout - Horizontal button group */}
               <Group
                 className={classes.actionButtons}
                 justify="space-between"
                 mt="lg"
+                visibleFrom="sm"
               >
                 <Button variant="light" onClick={addAssetClass}>
                   + Add Asset Class

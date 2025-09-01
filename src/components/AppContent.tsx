@@ -179,8 +179,7 @@ export function AppContent() {
       <AppShell.Footer p="md">
         <Group justify="space-between" align="center" h="100%">
           <Text size="sm" c="dimmed">
-            © 2025 George Dietrich (Blacksmoke16). All data stored locally in
-            your browser.
+            © {new Date().getFullYear()} George Dietrich (Blacksmoke16)
           </Text>
 
           <Group gap="xs">

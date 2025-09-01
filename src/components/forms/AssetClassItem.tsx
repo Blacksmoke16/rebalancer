@@ -1,11 +1,10 @@
-import { Box, Button, Group, Paper, Stack, Title } from "@mantine/core";
+import { Box, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { memo } from "react";
 import { AssetClass } from "../../types";
 import {
   AssetClassNameInput,
   DeleteButton,
-  FieldGroup,
   PercentageInput,
 } from "../ui/FormFields";
 import { FundsList } from "./FundsList";
@@ -36,46 +35,79 @@ export const AssetClassItem = memo<AssetClassItemProps>(
         p="md"
         className={classes.assetClassItem}
       >
-        <Group align="flex-start">
-          <Stack className={classes.assetClassContent}>
-            <FieldGroup>
-              <AssetClassNameInput
-                {...form.getInputProps(`portfolio.${assetIdx}.name`)}
-              />
-              <PercentageInput
-                value={assetClass.allocation}
-                onChange={(value) => {
-                  form.setFieldValue(`portfolio.${assetIdx}.allocation`, value);
-                }}
-              />
-              <DeleteButton
-                className={classes.deleteButton}
-                onClick={() => {
-                  onRemove(assetIdx);
-                }}
-                aria-label={`Delete ${assetClass.name || "asset class"}`}
-              />
-            </FieldGroup>
-            <Box>
-              <Title order={5}>Funds</Title>
-              <FundsList
-                funds={assetClass.funds}
-                assetClassIndex={assetIdx}
-                form={form}
-                onRemoveFund={onRemoveFund}
-              />
-              <Button
-                size="sm"
-                className={classes.fundsSection}
-                onClick={() => {
-                  onAddFund(assetIdx);
-                }}
-              >
-                Add Fund
-              </Button>
-            </Box>
-          </Stack>
-        </Group>
+        <Stack className={classes.assetClassContent}>
+          {/* Asset Class Header with Delete Button */}
+          <Group justify="space-between" align="flex-start" mb="sm">
+            <Stack gap="xs" style={{ flex: 1 }}>
+              <Text size="sm" fw={500} c="dimmed">
+                Asset Class
+              </Text>
+
+              {/* Mobile Layout - Stack name and percentage */}
+              <Stack gap="xs" hiddenFrom="sm">
+                <AssetClassNameInput
+                  {...form.getInputProps(`portfolio.${assetIdx}.name`)}
+                />
+                <PercentageInput
+                  value={assetClass.allocation}
+                  onChange={(value) => {
+                    form.setFieldValue(
+                      `portfolio.${assetIdx}.allocation`,
+                      value,
+                    );
+                  }}
+                />
+              </Stack>
+
+              {/* Desktop Layout - Horizontal group */}
+              <Group gap="md" visibleFrom="sm">
+                <AssetClassNameInput
+                  {...form.getInputProps(`portfolio.${assetIdx}.name`)}
+                />
+                <PercentageInput
+                  value={assetClass.allocation}
+                  onChange={(value) => {
+                    form.setFieldValue(
+                      `portfolio.${assetIdx}.allocation`,
+                      value,
+                    );
+                  }}
+                />
+              </Group>
+            </Stack>
+
+            <DeleteButton
+              onClick={() => {
+                onRemove(assetIdx);
+              }}
+              aria-label={`Delete entire ${assetClass.name || "asset class"} asset class`}
+            />
+          </Group>
+
+          <Box
+            pt="md"
+            style={{ borderTop: "1px solid var(--mantine-color-gray-3)" }}
+          >
+            <Title order={5} mb="sm">
+              Funds
+            </Title>
+            <FundsList
+              funds={assetClass.funds}
+              assetClassIndex={assetIdx}
+              form={form}
+              onRemoveFund={onRemoveFund}
+            />
+            <Button
+              size="sm"
+              className={classes.fundsSection}
+              onClick={() => {
+                onAddFund(assetIdx);
+              }}
+            >
+              Add Fund
+            </Button>
+          </Box>
+        </Stack>
       </Paper>
     );
   },

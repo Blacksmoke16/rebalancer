@@ -148,15 +148,24 @@ interface FieldGroupProps {
   children: React.ReactNode;
   align?: "flex-start" | "flex-end" | "center";
   className?: string;
+  visibleFrom?: "xs" | "sm" | "md" | "lg" | "xl";
+  hiddenFrom?: "xs" | "sm" | "md" | "lg" | "xl";
 }
 
 export const FieldGroup = memo<FieldGroupProps>(function FieldGroup({
   children,
   align = "flex-start",
   className,
+  visibleFrom,
+  hiddenFrom,
 }) {
   return (
-    <Group align={align} className={className}>
+    <Group
+      align={align}
+      className={className}
+      visibleFrom={visibleFrom}
+      hiddenFrom={hiddenFrom}
+    >
       {children}
     </Group>
   );

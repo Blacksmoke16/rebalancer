@@ -1,33 +1,33 @@
 version: 2
 
 updates:
-  - package-ecosystem: 'npm'
-    directory: '/'
+  - package-ecosystem: "npm"
+    directory: "/"
     schedule:
-      interval: 'monthly'
+      interval: "monthly"
 
     groups:
       eslint:
         patterns:
-          - '@eslint/*'
-          - 'eslint'
-          - 'eslint-*'
-          - 'typescript-eslint'
+          - "@eslint/*"
+          - "eslint"
+          - "eslint-*"
+          - "typescript-eslint"
       mantine:
         patterns:
-          - '@mantine*'
+          - "@mantine*"
       react:
         patterns:
-          - '@types/react*'
-          - 'react*'
+          - "@types/react*"
+          - "react*"
       vite:
         patterns:
-          - '@vitejs/*'
-          - '@vitest/*'
-          - 'vitest'
-          - 'vite'
+          - "@vitejs/*"
+          - "@vitest/*"
+          - "vitest"
+          - "vite"
 
-  - package-ecosystem: 'github-actions'
-    directory: '/'
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: 'monthly'
+      interval: "monthly"
