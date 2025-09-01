@@ -1,0 +1,35 @@
+.container {
+  /* Responsive container without min-width constraint */
+}
+
+.assetClassItem {
+  margin-top: var(--mantine-spacing-md);
+}
+
+.assetClassContent {
+  flex: 1;
+}
+
+.deleteButton {
+  margin-top: 25px;
+}
+
+.fundsSection {
+  margin-top: var(--mantine-spacing-xs);
+}
+
+.fundItem {
+  margin-top: var(--mantine-spacing-xs);
+}
+
+.totalAllocation {
+  margin-top: var(--mantine-spacing-md);
+}
+
+.allocationError {
+  color: var(--mantine-color-red-6);
+}
+
+.actionButtons {
+  margin-top: var(--mantine-spacing-md);
+}

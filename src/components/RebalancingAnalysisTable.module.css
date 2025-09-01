@@ -1,0 +1,21 @@
+.tableHeader {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.investRow {
+  background-color: light-dark(
+    var(--mantine-color-gray-4),
+    var(--mantine-color-gray-7)
+  ) !important;
+}
+
+.investLabel {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.investField {
+  max-width: 200px;
+  font-weight: 600;
+}

@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Portfolio Rebalancer
 
-## Getting Started
+[![CI](https://github.com/blacksmoke16/rebalancer/actions/workflows/ci.yml/badge.svg?branch=master&event=schedule)](https://github.com/blacksmoke16/rebalancer/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/release/blacksmoke16/rebalancer.svg)](https://github.com/blacksmoke16/rebalancer/releases)
 
-First, run the development server:
+A privacy-focused portfolio rebalancing tool that helps you optimize your investment allocation across asset classes. Calculate where to invest new money to maintain your target portfolio balance.
 
-```bash
+## Key Features
+
+- **Portfolio Analysis**: View current vs target allocation across all your asset classes and accounts
+- **Rebalancing Recommendations**: Get precise dollar amounts for where to invest new money
+- **Responsive Design**: Works perfectly on desktop and mobile devices
+- **Privacy First**: All data is stored locally in your browser - nothing is sent to servers
+- **Real-time Calculations**: Instant updates as you modify your portfolio or investment amounts
+
+## Development
+
+### Prerequisites
+
+- Node.js 22+
+- npm
+
+### Getting Started
+
+```sh
+# Clone the repository
+git clone https://github.com/Blacksmoke16/rebalancer.git
+cd rebalancer
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Open http://localhost:5173 in your browser
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## License
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+[MIT](LICENSE)
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Contributors
 
-## Learn More
+- [George Dietrich](https://github.com/blacksmoke16) - creator and maintainer
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Q5Q31KJEFJ)
