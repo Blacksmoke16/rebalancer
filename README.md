@@ -1,5 +1,9 @@
 # Portfolio Rebalancer
 
+[![CI](https://github.com/blacksmoke16/rebalancer/actions/workflows/ci.yml/badge.svg?branch=master&event=schedule)](https://github.com/blacksmoke16/rebalancer/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/release/blacksmoke16/rebalancer.svg)](https://github.com/blacksmoke16/rebalancer/releases)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Q5Q31KJEFJ)
+
 A privacy-focused portfolio rebalancing tool that helps you optimize your investment allocation across asset classes. Calculate where to invest new money to maintain your target portfolio balance.
 
 ## Key Features
@@ -13,6 +17,7 @@ A privacy-focused portfolio rebalancing tool that helps you optimize your invest
 ## 🏗️ Development
 
 ### Prerequisites
+
 - Node.js 22+
 - npm
 
@@ -35,10 +40,3 @@ npm run dev
 ## License
 
 [MIT](LICENSE)
-
-## 👨‍💻 Author
-
-**George Dietrich (Blacksmoke16)**
-
-- GitHub: [@blacksmoke16](https://github.com/blacksmoke16)
-- Ko-fi: [Support Development](https://ko-fi.com/blacksmoke16/tip)

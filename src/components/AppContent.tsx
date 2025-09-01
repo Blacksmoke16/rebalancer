@@ -200,7 +200,7 @@ export function AppContent() {
               <IconBrandGithub style={{ verticalAlign: "middle" }} size={16} />
             </Anchor>
             <Text size="sm" c="dimmed">
-              Version 1.0.0
+              Version 0.1.0
             </Text>
           </Group>
         </Group>
