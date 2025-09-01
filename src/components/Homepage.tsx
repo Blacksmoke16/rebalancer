@@ -13,7 +13,7 @@ export const Homepage = memo(function Homepage() {
       <Stack gap="md">
         <Title order={1}>Welcome to Portfolio Rebalancer</Title>
         <Text size="lg" c="dimmed">
-          A contribution based rebalancing calculator to help you maintain your
+          A contribution based rebalancing calculator to help maintain your
           target asset allocation and minimize transactions/taxes.
         </Text>
       </Stack>
