@@ -33,7 +33,7 @@ export function usePortfolioData(): UsePortfolioDataReturn {
   const [portfolio, portfolioList] = useListState<AssetClass>(
     defaultAssetClasses(),
   );
-  const [toInvest, setToInvest] = useState(createDollarAmount(0));
+  const [toInvest, setToInvest] = useState(createDollarAmount(1500));
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Debounced save function to avoid excessive localStorage writes
@@ -115,7 +115,7 @@ export function usePortfolioData(): UsePortfolioDataReturn {
   const resetToDefaults = useCallback((): void => {
     const defaultAccountsList = defaultAccounts();
     const defaultPortfolioList = defaultAssetClasses();
-    const defaultToInvestValue = createDollarAmount(0);
+    const defaultToInvestValue = createDollarAmount(1500);
 
     accountList.setState(defaultAccountsList);
     portfolioList.setState(defaultPortfolioList);

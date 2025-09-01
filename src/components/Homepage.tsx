@@ -44,7 +44,8 @@ export const Homepage = memo(function Homepage() {
           <List.Item>
             <Text>
               <strong>Step 4:</strong> Buy the suggested amount of each asset
-              class in order to get closer to your target allocation
+              class in order to get closer to your target allocation; or ensure
+              you remain on target if already there.
             </Text>
           </List.Item>
         </List>
@@ -129,18 +130,16 @@ export const Homepage = memo(function Homepage() {
               />
               Free and Open Source
             </Title>
-            <Text>
-              Free, without adds, fully open source MIT licensed.
-              <Text size="sm" c="dimmed">
-                Support development:{" "}
-                <Anchor
-                  rel="noopener noreferrer"
-                  href="https://ko-fi.com/blacksmoke16/tip"
-                  target="_blank"
-                >
-                  Buy me a coffee
-                </Anchor>
-              </Text>
+            <Text>Free, without adds, fully open source MIT licensed.</Text>
+            <Text size="sm" c="dimmed">
+              Support development:{" "}
+              <Anchor
+                rel="noopener noreferrer"
+                href="https://ko-fi.com/blacksmoke16/tip"
+                target="_blank"
+              >
+                Buy me a coffee
+              </Anchor>
             </Text>
           </Stack>
         </Card>
