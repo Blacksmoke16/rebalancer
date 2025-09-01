@@ -35,7 +35,7 @@ export const AccountsSettings = memo<AccountsSettingsProps>(function AccountsSet
                 <form onSubmit={form.onSubmit(handleSubmit)}>
                     <Stack gap="md">
                         {form.values.accounts.map((account, idx) => (
-                            <FieldGroup key={account.key} className={classes.accountItem}>
+                            <FieldGroup key={account.key} align="flex-end" className={classes.accountItem}>
                                 <AccountNameInput
                                     {...form.getInputProps(`accounts.${idx}.name`)}
                                     placeholder={`Account ${idx + 1} name (e.g., 401k, Roth IRA)`}
