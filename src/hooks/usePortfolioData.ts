@@ -29,11 +29,13 @@ interface UsePortfolioDataReturn {
 
 export function usePortfolioData(): UsePortfolioDataReturn {
   // Initialize state with defaults, will be overridden by useEffect if data exists
-  const [accounts, accountList] = useListState<Account>(defaultAccounts());
-  const [portfolio, portfolioList] = useListState<AssetClass>(
+  const [accounts, accountList] = useListState<Account>(() =>
+    defaultAccounts(),
+  );
+  const [portfolio, portfolioList] = useListState<AssetClass>(() =>
     defaultAssetClasses(),
   );
-  const [toInvest, setToInvest] = useState(createDollarAmount(1500));
+  const [toInvest, setToInvest] = useState(() => createDollarAmount(1500));
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Debounced save function to avoid excessive localStorage writes
@@ -49,13 +51,16 @@ export function usePortfolioData(): UsePortfolioDataReturn {
 
   // Load data from localStorage on component mount
   useEffect(() => {
-    const savedData = loadPortfolioData();
-    if (savedData) {
-      accountList.setState(savedData.accounts);
-      portfolioList.setState(savedData.portfolio);
-      setToInvest(savedData.toInvest);
-    }
-    setIsLoaded(true);
+    // Use queueMicrotask to avoid synchronous setState warning
+    queueMicrotask(() => {
+      const savedData = loadPortfolioData();
+      if (savedData) {
+        accountList.setState(savedData.accounts);
+        portfolioList.setState(savedData.portfolio);
+        setToInvest(savedData.toInvest);
+      }
+      setIsLoaded(true);
+    });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-save when data changes
