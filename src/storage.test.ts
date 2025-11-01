@@ -348,16 +348,18 @@ describe("Storage Utilities", () => {
       const mockFile = new File(["test"], "portfolio.json");
 
       // Mock FileReader to trigger error
-      const mockFileReader = {
-        readAsText: vi.fn().mockImplementation(function (this: any) {
-          // Simulate FileReader error
-          setTimeout(() => this.onerror?.(), 0);
-        }),
-        onerror: null,
-        onload: null,
-      };
+      const mockFileReader = vi.fn().mockImplementation(function () {
+        return {
+          readAsText: vi.fn().mockImplementation(function (this: any) {
+            // Simulate FileReader error
+            setTimeout(() => this.onerror?.(), 0);
+          }),
+          onerror: null,
+          onload: null,
+        };
+      });
 
-      (global as any).FileReader = vi.fn(() => mockFileReader);
+      (global as any).FileReader = mockFileReader;
 
       await expect(importPortfolioData(mockFile)).rejects.toThrow(
         "Failed to read file",
