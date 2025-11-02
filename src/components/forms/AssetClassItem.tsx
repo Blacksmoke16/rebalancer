@@ -47,9 +47,11 @@ export const AssetClassItem = memo<AssetClassItemProps>(
               <Stack gap="xs" hiddenFrom="sm">
                 <AssetClassNameInput
                   {...form.getInputProps(`portfolio.${assetIdx}.name`)}
+                  data-testid={`asset-class-name-${assetIdx}`}
                 />
                 <PercentageInput
                   {...form.getInputProps(`portfolio.${assetIdx}.allocation`)}
+                  data-testid={`asset-class-allocation-${assetIdx}`}
                 />
               </Stack>
 
@@ -57,9 +59,11 @@ export const AssetClassItem = memo<AssetClassItemProps>(
               <Group gap="md" visibleFrom="sm">
                 <AssetClassNameInput
                   {...form.getInputProps(`portfolio.${assetIdx}.name`)}
+                  data-testid={`asset-class-name-${assetIdx}`}
                 />
                 <PercentageInput
                   {...form.getInputProps(`portfolio.${assetIdx}.allocation`)}
+                  data-testid={`asset-class-allocation-${assetIdx}`}
                 />
               </Group>
             </Stack>

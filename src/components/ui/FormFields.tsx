@@ -10,11 +10,13 @@ import commonClasses from "../../styles/common.module.css";
 interface TickerInputProps extends Omit<TextInputProps, "onChange"> {
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  "data-testid"?: string;
 }
 
 export const TickerInput = memo<TickerInputProps>(function TickerInput({
   value = "",
   onChange,
+  "data-testid": dataTestId,
   ...props
 }) {
   return (
@@ -24,6 +26,7 @@ export const TickerInput = memo<TickerInputProps>(function TickerInput({
       value={value}
       onChange={onChange}
       validationType="ticker"
+      data-testid={dataTestId}
       {...props}
     />
   );
@@ -36,6 +39,7 @@ interface PercentageInputProps {
   label?: string;
   placeholder?: string;
   error?: React.ReactNode;
+  "data-testid"?: string;
 }
 
 export const PercentageInput = memo<PercentageInputProps>(
@@ -45,6 +49,7 @@ export const PercentageInput = memo<PercentageInputProps>(
     label = "Target %",
     placeholder = "60",
     error,
+    "data-testid": dataTestId,
   }) {
     return (
       <NumberInput
@@ -56,6 +61,7 @@ export const PercentageInput = memo<PercentageInputProps>(
         value={value}
         onChange={onChange}
         error={error}
+        data-testid={dataTestId}
       />
     );
   },
@@ -65,10 +71,11 @@ export const PercentageInput = memo<PercentageInputProps>(
 interface AssetClassNameInputProps extends Omit<TextInputProps, "onChange"> {
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  "data-testid"?: string;
 }
 
 export const AssetClassNameInput = memo<AssetClassNameInputProps>(
-  function AssetClassNameInput({ value = "", onChange, ...props }) {
+  function AssetClassNameInput({ value = "", onChange, "data-testid": dataTestId, ...props }) {
     return (
       <ValidatedInput
         placeholder="Asset class name"
@@ -76,6 +83,7 @@ export const AssetClassNameInput = memo<AssetClassNameInputProps>(
         value={value}
         onChange={onChange}
         validationType="name"
+        data-testid={dataTestId}
         {...props}
       />
     );

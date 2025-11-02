@@ -28,6 +28,7 @@ export const FundsList = memo<FundsListProps>(function FundsList({
               {...form.getInputProps(
                 `portfolio.${assetClassIndex}.funds.${fundIdx}.ticker`,
               )}
+              data-testid={`fund-ticker-${assetClassIndex}-${fundIdx}`}
             />
             <Group justify="flex-end">
               <DeleteButton
@@ -46,6 +47,7 @@ export const FundsList = memo<FundsListProps>(function FundsList({
               {...form.getInputProps(
                 `portfolio.${assetClassIndex}.funds.${fundIdx}.ticker`,
               )}
+              data-testid={`fund-ticker-${assetClassIndex}-${fundIdx}`}
             />
             <DeleteButton
               size="md"
