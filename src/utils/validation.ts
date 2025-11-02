@@ -18,7 +18,8 @@ export const validation = {
   isValidTicker: (value: unknown): value is string => {
     return (
       typeof value === "string" &&
-      /^[A-Z]{1,5}$/.test(value.trim().toUpperCase())
+      value.trim().length > 0 &&
+      /^[A-Z0-9\s/]+$/i.test(value.trim())
     );
   },
 
@@ -55,10 +56,7 @@ export const validation = {
 
   // Sanitization
   sanitizeTicker: (ticker: string): string => {
-    return ticker
-      .trim()
-      .toUpperCase()
-      .replace(/[^A-Z]/g, "");
+    return ticker.trim();
   },
 
   sanitizeName: (name: string): string => {
@@ -109,7 +107,7 @@ export const validateAndTransform = {
     }
     return {
       isValid: false,
-      error: "Must be 1-5 uppercase letters",
+      error: "Ticker is required",
     };
   },
 
