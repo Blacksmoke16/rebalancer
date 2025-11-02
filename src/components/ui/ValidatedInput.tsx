@@ -8,10 +8,11 @@ interface ValidatedInputProps extends Omit<TextInputProps, "onChange"> {
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   validationType: ValidationType;
+  "data-testid"?: string;
 }
 
 export const ValidatedInput = memo<ValidatedInputProps>(
-  function ValidatedInput({ value = "", onChange, validationType, ...props }) {
+  function ValidatedInput({ value = "", onChange, validationType, "data-testid": dataTestId, ...props }) {
     const handleChange = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>) => {
         if (onChange) {
@@ -35,6 +36,6 @@ export const ValidatedInput = memo<ValidatedInputProps>(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { defaultValue: _defaultValue, ...restProps } = props;
 
-    return <TextInput value={value} onChange={handleChange} {...restProps} />;
+    return <TextInput value={value} onChange={handleChange} data-testid={dataTestId} {...restProps} />;
   },
 );
