@@ -22,6 +22,7 @@ updates:
           - "react*"
       vite:
         patterns:
+          - "@playwright/*"
           - "@vitejs/*"
           - "@vitest/*"
           - "vitest"
