@@ -111,12 +111,22 @@ describe("Validation Utilities", () => {
       expect(validation.isValidTicker("vxus")).toBe(true);
     });
 
+    it("should return true for multiple tickers with slash", () => {
+      expect(validation.isValidTicker("VTSAX / VTI")).toBe(true);
+      expect(validation.isValidTicker("VTI/VTSAX")).toBe(true);
+    });
+
+    it("should return true for tickers with numbers", () => {
+      expect(validation.isValidTicker("VTI123")).toBe(true);
+      expect(validation.isValidTicker("FUND1")).toBe(true);
+    });
+
     it("should return false for empty or invalid tickers", () => {
       expect(validation.isValidTicker("")).toBe(false);
       expect(validation.isValidTicker("   ")).toBe(false);
-      expect(validation.isValidTicker("VTI123")).toBe(false);
       expect(validation.isValidTicker("VTI-A")).toBe(false);
       expect(validation.isValidTicker("VTI.A")).toBe(false);
+      expect(validation.isValidTicker("VTI@")).toBe(false);
     });
 
     it("should return false for non-strings", () => {
@@ -149,22 +159,20 @@ describe("Validation Utilities", () => {
   });
 
   describe("validation.sanitizeTicker", () => {
-    it("should convert to uppercase and remove non-letters", () => {
-      expect(validation.sanitizeTicker("vti")).toBe("VTI");
-      expect(validation.sanitizeTicker("VTI123")).toBe("VTI");
-      expect(validation.sanitizeTicker("VTI-A")).toBe("VTIA");
-      expect(validation.sanitizeTicker("V.T.I")).toBe("VTI");
+    it("should only trim whitespace", () => {
+      expect(validation.sanitizeTicker("vti")).toBe("vti");
+      expect(validation.sanitizeTicker("VTI123")).toBe("VTI123");
+      expect(validation.sanitizeTicker("VTSAX / VTI")).toBe("VTSAX / VTI");
     });
 
-    it("should trim whitespace", () => {
+    it("should trim leading and trailing whitespace", () => {
       expect(validation.sanitizeTicker("  VTI  ")).toBe("VTI");
-      expect(validation.sanitizeTicker("\tvti\n")).toBe("VTI");
+      expect(validation.sanitizeTicker("\tvti\n")).toBe("vti");
     });
 
     it("should handle empty strings", () => {
       expect(validation.sanitizeTicker("")).toBe("");
       expect(validation.sanitizeTicker("   ")).toBe("");
-      expect(validation.sanitizeTicker("123")).toBe("");
     });
   });
 
@@ -316,28 +324,32 @@ describe("validateAndTransform", () => {
 
       const result2 = validateAndTransform.ticker("vti");
       expect(result2.isValid).toBe(true);
-      expect(result2.value).toBe("VTI");
+      expect(result2.value).toBe("vti");
     });
 
     it("should sanitize and validate tickers", () => {
       const result1 = validateAndTransform.ticker("  vti  ");
       expect(result1.isValid).toBe(true);
-      expect(result1.value).toBe("VTI");
+      expect(result1.value).toBe("vti");
 
       const result2 = validateAndTransform.ticker("VTI123");
       expect(result2.isValid).toBe(true);
-      expect(result2.value).toBe("VTI");
+      expect(result2.value).toBe("VTI123");
+
+      const result3 = validateAndTransform.ticker("VTSAX / VTI");
+      expect(result3.isValid).toBe(true);
+      expect(result3.value).toBe("VTSAX / VTI");
     });
 
     it("should return invalid result for invalid tickers", () => {
       const result1 = validateAndTransform.ticker("");
       expect(result1.isValid).toBe(false);
       expect(result1.value).toBeUndefined();
-      expect(result1.error).toBe("Must be 1-5 uppercase letters");
+      expect(result1.error).toBe("Ticker is required");
 
-      const result2 = validateAndTransform.ticker("123");
+      const result2 = validateAndTransform.ticker("VTI-A");
       expect(result2.isValid).toBe(false);
-      expect(result2.error).toBe("Must be 1-5 uppercase letters");
+      expect(result2.error).toBe("Ticker is required");
     });
   });
 

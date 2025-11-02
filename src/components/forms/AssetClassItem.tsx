@@ -49,13 +49,7 @@ export const AssetClassItem = memo<AssetClassItemProps>(
                   {...form.getInputProps(`portfolio.${assetIdx}.name`)}
                 />
                 <PercentageInput
-                  value={assetClass.allocation}
-                  onChange={(value) => {
-                    form.setFieldValue(
-                      `portfolio.${assetIdx}.allocation`,
-                      value,
-                    );
-                  }}
+                  {...form.getInputProps(`portfolio.${assetIdx}.allocation`)}
                 />
               </Stack>
 
@@ -65,13 +59,7 @@ export const AssetClassItem = memo<AssetClassItemProps>(
                   {...form.getInputProps(`portfolio.${assetIdx}.name`)}
                 />
                 <PercentageInput
-                  value={assetClass.allocation}
-                  onChange={(value) => {
-                    form.setFieldValue(
-                      `portfolio.${assetIdx}.allocation`,
-                      value,
-                    );
-                  }}
+                  {...form.getInputProps(`portfolio.${assetIdx}.allocation`)}
                 />
               </Group>
             </Stack>

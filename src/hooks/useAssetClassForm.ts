@@ -44,8 +44,8 @@ export function useAssetClassForm({
 
   // Update form when portfolio prop changes (e.g., after import)
   useEffect(() => {
-    form.setValues({ portfolio });
     form.setInitialValues({ portfolio });
+    form.setValues({ portfolio });
   }, [portfolio]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const preserveFundValues = useCallback(

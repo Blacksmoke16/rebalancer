@@ -1,10 +1,9 @@
 import { ActionIcon, Group, NumberInput, TextInputProps } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
-import { memo, useCallback } from "react";
+import { memo } from "react";
 import { FORMATTING } from "../../constants";
-import { validateAndTransform } from "../../utils/validation";
 import { ValidatedInput } from "./ValidatedInput";
-import { createPercentage, Percentage } from "../../types/branded";
+import { Percentage } from "../../types/branded";
 import commonClasses from "../../styles/common.module.css";
 
 // Reusable ticker input with validation
@@ -32,10 +31,11 @@ export const TickerInput = memo<TickerInputProps>(function TickerInput({
 
 // Percentage input with validation
 interface PercentageInputProps {
-  value: Percentage;
-  onChange: (value: Percentage) => void;
+  value?: Percentage;
+  onChange?: (value: string | number) => void;
   label?: string;
   placeholder?: string;
+  error?: React.ReactNode;
 }
 
 export const PercentageInput = memo<PercentageInputProps>(
@@ -44,19 +44,8 @@ export const PercentageInput = memo<PercentageInputProps>(
     onChange,
     label = "Target %",
     placeholder = "60",
+    error,
   }) {
-    const handleChange = useCallback(
-      (inputValue: string | number) => {
-        const numValue =
-          typeof inputValue === "string"
-            ? parseFloat(inputValue) || 0
-            : inputValue;
-        const result = validateAndTransform.percentage(numValue);
-        onChange(createPercentage(result.value ?? 0));
-      },
-      [onChange],
-    );
-
     return (
       <NumberInput
         label={label}
@@ -65,7 +54,8 @@ export const PercentageInput = memo<PercentageInputProps>(
         max={100}
         suffix={FORMATTING.PERCENT_SUFFIX}
         value={value}
-        onChange={handleChange}
+        onChange={onChange}
+        error={error}
       />
     );
   },
