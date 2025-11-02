@@ -20,7 +20,7 @@ updates:
         patterns:
           - "@types/react*"
           - "react*"
-      vite:
+      testing:
         patterns:
           - "@playwright/*"
           - "@vitejs/*"
