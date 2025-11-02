@@ -75,7 +75,12 @@ interface AssetClassNameInputProps extends Omit<TextInputProps, "onChange"> {
 }
 
 export const AssetClassNameInput = memo<AssetClassNameInputProps>(
-  function AssetClassNameInput({ value = "", onChange, "data-testid": dataTestId, ...props }) {
+  function AssetClassNameInput({
+    value = "",
+    onChange,
+    "data-testid": dataTestId,
+    ...props
+  }) {
     return (
       <ValidatedInput
         placeholder="Asset class name"
