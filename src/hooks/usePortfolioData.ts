@@ -176,6 +176,7 @@ export function usePortfolioData(): UsePortfolioDataReturn {
       setPendingChanges((prev) => {
         // Remove the entry if the change is zero
         if (changeAmount === 0) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { [key]: _, ...rest } = prev;
           return rest;
         }
@@ -214,7 +215,12 @@ export function usePortfolioData(): UsePortfolioDataReturn {
       const newValue = currentValue + changeAmount;
 
       // Update the value
-      updateAssetAccountValue(assetClassName, fundTicker, accountName, newValue);
+      updateAssetAccountValue(
+        assetClassName,
+        fundTicker,
+        accountName,
+        newValue,
+      );
     });
 
     // Clear planning mode state

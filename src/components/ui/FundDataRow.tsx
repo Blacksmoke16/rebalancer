@@ -56,9 +56,13 @@ export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
                   allowNegative
                   value={pendingChange === 0 ? undefined : pendingChange}
                   placeholder={`Current: $${currentValue.toLocaleString()}`}
+                  data-testid={`${fund.ticker}-${account.name}-pending-value`}
                   onValueChange={(value) => {
                     // Cap negative changes to prevent negative balances
-                    const cappedValue = value < 0 ? Math.max(value, -currentValue) : value;
+                    const cappedValue =
+                      value < 0
+                        ? Math.max(value, -(currentValue as number))
+                        : value;
                     updatePendingChange(
                       assetClass.name,
                       fund.ticker,
@@ -78,6 +82,7 @@ export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
               <NumberField
                 isCurrency
                 value={currentValue}
+                data-testid={`${fund.ticker}-${account.name}-value`}
                 onValueChange={(value) => {
                   updateAssetAccountValue(
                     assetClass.name,

@@ -90,7 +90,13 @@ export function usePortfolioCalculations(
     const totalWithInvestment = totalDollars + toInvest;
 
     return { totalDollars, totalWithInvestment };
-  }, [portfolio, toInvest, getEffectiveValue, usePendingValues, pendingChanges]);
+  }, [
+    portfolio,
+    toInvest,
+    getEffectiveValue,
+    usePendingValues,
+    pendingChanges,
+  ]);
 
   // Stable utility functions that only depend on portfolio structure
   const totalForAccount = useCallback(

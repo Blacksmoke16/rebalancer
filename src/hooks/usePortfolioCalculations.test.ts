@@ -336,7 +336,12 @@ describe("usePortfolioCalculations", () => {
     it("should return stable function references", () => {
       const pendingChanges = {};
       const { result, rerender } = renderHook(() =>
-        usePortfolioCalculations(mockPortfolio, toInvest, pendingChanges, false),
+        usePortfolioCalculations(
+          mockPortfolio,
+          toInvest,
+          pendingChanges,
+          false,
+        ),
       );
 
       const firstRenderFunctions = {
