@@ -165,10 +165,10 @@ const DesktopRebalanceLayout = memo(function DesktopRebalanceLayout({
               <TableTh className={commonClasses.tableHeader}>Delta (%)</TableTh>
               <TableTh className={commonClasses.tableHeader}>Delta ($)</TableTh>
               <TableTh className={commonClasses.tableHeader}>
-                Projected ($)
+                Projected (%)
               </TableTh>
               <TableTh className={commonClasses.tableHeader}>
-                Projected (%)
+                Projected ($)
               </TableTh>
               <TableTh className={commonClasses.tableHeader}>
                 Amount to Buy
@@ -225,10 +225,10 @@ const DesktopRebalanceLayout = memo(function DesktopRebalanceLayout({
                     <DeltaCell value={deltaDollars} type="currency" />
                   </TableTd>
                   <TableTd>
-                    <CurrencyCell value={projected} />
+                    <PercentageCell value={projectedPercent} />
                   </TableTd>
                   <TableTd>
-                    <PercentageCell value={projectedPercent} />
+                    <CurrencyCell value={projected} />
                   </TableTd>
                   <TableTd>
                     <CurrencyCell value={toBuy} />
