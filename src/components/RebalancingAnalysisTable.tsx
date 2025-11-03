@@ -74,19 +74,19 @@ const MobileRebalanceLayout = memo(function MobileRebalanceLayout({
 
               <Group justify="space-between">
                 <Text size="sm" c="dimmed">
-                  Target:
+                  Current:
                 </Text>
-                <Text size="sm" fw={600}>
-                  <PercentageCell value={assetClass.allocation} />
+                <Text size="sm">
+                  <PercentageCell value={currentPercent} />
                 </Text>
               </Group>
 
               <Group justify="space-between">
                 <Text size="sm" c="dimmed">
-                  Current:
+                  Target:
                 </Text>
-                <Text size="sm">
-                  <PercentageCell value={currentPercent} />
+                <Text size="sm" fw={600}>
+                  <PercentageCell value={assetClass.allocation} />
                 </Text>
               </Group>
 
@@ -151,16 +151,16 @@ const DesktopRebalanceLayout = memo(function DesktopRebalanceLayout({
                 Asset Class
               </TableTh>
               <TableTh className={commonClasses.tableHeader}>
-                Target (%)
-              </TableTh>
-              <TableTh className={commonClasses.tableHeader}>
                 Current (%)
               </TableTh>
               <TableTh className={commonClasses.tableHeader}>
-                Target ($)
+                Target (%)
               </TableTh>
               <TableTh className={commonClasses.tableHeader}>
                 Current ($)
+              </TableTh>
+              <TableTh className={commonClasses.tableHeader}>
+                Target ($)
               </TableTh>
               <TableTh className={commonClasses.tableHeader}>Delta (%)</TableTh>
               <TableTh className={commonClasses.tableHeader}>Delta ($)</TableTh>
@@ -207,16 +207,16 @@ const DesktopRebalanceLayout = memo(function DesktopRebalanceLayout({
                 <TableTr key={assetClass.name}>
                   <TableTd>{assetClass.name}</TableTd>
                   <TableTd>
-                    <PercentageCell value={assetClass.allocation} />
-                  </TableTd>
-                  <TableTd>
                     <PercentageCell value={currentPercent} />
                   </TableTd>
                   <TableTd>
-                    <CurrencyCell value={target} />
+                    <PercentageCell value={assetClass.allocation} />
                   </TableTd>
                   <TableTd>
                     <CurrencyCell value={current} />
+                  </TableTd>
+                  <TableTd>
+                    <CurrencyCell value={target} />
                   </TableTd>
                   <TableTd>
                     <DeltaCell value={deltaPercent} type="percentage" />

@@ -1,21 +1,43 @@
 import { useListState } from "@mantine/hooks";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { STORAGE } from "../constants";
 import { loadPortfolioData, savePortfolioData } from "../storage";
 import { Account, AssetClass } from "../types";
 import { createDollarAmount, DollarAmount } from "../types/branded";
 import { defaultAccounts, defaultAssetClasses } from "../utils";
 
+export type PendingChanges = Record<string, number>;
+
+function getPendingChangeKey(
+  assetClassName: string,
+  fundTicker: string,
+  accountName: string,
+): string {
+  return `${assetClassName}|${fundTicker}|${accountName}`;
+}
+
 interface UsePortfolioDataReturn {
   accounts: Account[];
   portfolio: AssetClass[];
   toInvest: DollarAmount;
+  planningMode: boolean;
+  pendingChanges: PendingChanges;
+  pendingBalance: number;
   updateAssetAccountValue: (
     assetClassName: string,
     fundTicker: string,
     accountName: string,
     value: number,
   ) => void;
+  updatePendingChange: (
+    assetClassName: string,
+    fundTicker: string,
+    accountName: string,
+    changeAmount: number,
+  ) => void;
+  enterPlanningMode: () => void;
+  exitPlanningMode: () => void;
+  applyPendingChanges: () => void;
   handleDataImport: (
     newAccounts: Account[],
     newPortfolio: AssetClass[],
@@ -37,6 +59,15 @@ export function usePortfolioData(): UsePortfolioDataReturn {
   );
   const [toInvest, setToInvest] = useState(() => createDollarAmount(1500));
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Planning mode state
+  const [planningMode, setPlanningMode] = useState(false);
+  const [pendingChanges, setPendingChanges] = useState<PendingChanges>({});
+
+  // Calculate the pending balance (sum of all pending changes)
+  const pendingBalance = useMemo(() => {
+    return Object.values(pendingChanges).reduce((sum, amt) => sum + amt, 0);
+  }, [pendingChanges]);
 
   // Debounced save function to avoid excessive localStorage writes
   const debouncedSave = useCallback(() => {
@@ -134,14 +165,78 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     );
   }, [accountList, portfolioList]);
 
+  const updatePendingChange = useCallback(
+    (
+      assetClassName: string,
+      fundTicker: string,
+      accountName: string,
+      changeAmount: number,
+    ): void => {
+      const key = getPendingChangeKey(assetClassName, fundTicker, accountName);
+      setPendingChanges((prev) => {
+        // Remove the entry if the change is zero
+        if (changeAmount === 0) {
+          const { [key]: _, ...rest } = prev;
+          return rest;
+        }
+        return {
+          ...prev,
+          [key]: changeAmount,
+        };
+      });
+    },
+    [],
+  );
+
+  const enterPlanningMode = useCallback((): void => {
+    setPlanningMode(true);
+    setPendingChanges({});
+  }, []);
+
+  const exitPlanningMode = useCallback((): void => {
+    setPlanningMode(false);
+    setPendingChanges({});
+  }, []);
+
+  const applyPendingChanges = useCallback((): void => {
+    // Apply each pending change to the actual holdings
+    Object.entries(pendingChanges).forEach(([key, changeAmount]) => {
+      const [assetClassName, fundTicker, accountName] = key.split("|");
+
+      // Find current value
+      const assetClass = portfolio.find((ac) => ac.name === assetClassName);
+      if (!assetClass) return;
+
+      const fund = assetClass.funds.find((f) => f.ticker === fundTicker);
+      if (!fund) return;
+
+      const currentValue = fund.values[accountName] ?? 0;
+      const newValue = currentValue + changeAmount;
+
+      // Update the value
+      updateAssetAccountValue(assetClassName, fundTicker, accountName, newValue);
+    });
+
+    // Clear planning mode state
+    setPlanningMode(false);
+    setPendingChanges({});
+  }, [pendingChanges, portfolio, updateAssetAccountValue]);
+
   return {
     // State
     accounts,
     portfolio,
     toInvest,
+    planningMode,
+    pendingChanges,
+    pendingBalance,
 
     // Actions
     updateAssetAccountValue,
+    updatePendingChange,
+    enterPlanningMode,
+    exitPlanningMode,
+    applyPendingChanges,
     handleDataImport,
     resetToDefaults,
     setToInvest,

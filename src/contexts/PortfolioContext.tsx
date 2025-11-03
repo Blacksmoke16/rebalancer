@@ -1,5 +1,6 @@
 import { useListState } from "@mantine/hooks";
 import { createContext, use } from "react";
+import { PendingChanges } from "../hooks/usePortfolioData";
 import { Account, AssetClass } from "../types";
 import { DollarAmount } from "../types/branded";
 
@@ -20,6 +21,9 @@ export interface PortfolioContextValue {
   accounts: Account[];
   portfolio: AssetClass[];
   toInvest: DollarAmount;
+  planningMode: boolean;
+  pendingChanges: PendingChanges;
+  pendingBalance: number;
   calculations: CalculationMethods;
   updateAssetAccountValue: (
     assetClassName: string,
@@ -27,6 +31,15 @@ export interface PortfolioContextValue {
     accountName: string,
     value: number,
   ) => void;
+  updatePendingChange: (
+    assetClassName: string,
+    fundTicker: string,
+    accountName: string,
+    changeAmount: number,
+  ) => void;
+  enterPlanningMode: () => void;
+  exitPlanningMode: () => void;
+  applyPendingChanges: () => void;
   setToInvest: (value: DollarAmount) => void;
   resetToDefaults: () => void;
   handleDataImport: (

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { renderHook } from "../test/utils";
 import { usePortfolioCalculations } from "./usePortfolioCalculations";
 import { createDollarAmount, createPercentage } from "../types/branded";
+import type { AssetClass } from "../types";
 
 describe("usePortfolioCalculations", () => {
   const mockPortfolio = [
@@ -333,8 +334,9 @@ describe("usePortfolioCalculations", () => {
 
   describe("Memoization", () => {
     it("should return stable function references", () => {
+      const pendingChanges = {};
       const { result, rerender } = renderHook(() =>
-        usePortfolioCalculations(mockPortfolio, toInvest),
+        usePortfolioCalculations(mockPortfolio, toInvest, pendingChanges, false),
       );
 
       const firstRenderFunctions = {
@@ -369,6 +371,177 @@ describe("usePortfolioCalculations", () => {
       expect(result.current.totalDollars).toBe(
         firstRenderFunctions.totalDollars,
       );
+    });
+  });
+
+  describe("Pending Changes (Planning Mode)", () => {
+    it("should include pending changes when usePendingValues is true", () => {
+      const pendingChanges = {
+        "US Total Stock Market|VTI|401k": 500,
+        "International Stocks|VXUS|Roth IRA": -200,
+      };
+
+      const { result } = renderHook(() =>
+        usePortfolioCalculations(mockPortfolio, toInvest, pendingChanges, true),
+      );
+
+      // Original: 401k had 3000 in VTI, now +500 = 3500
+      expect(
+        result.current.totalForAssetClassAccount(
+          "US Total Stock Market",
+          "401k",
+        ),
+      ).toBe(3500);
+
+      // Original: Roth IRA had 1000 in VXUS, now -200 = 800
+      expect(
+        result.current.totalForAssetClassAccount(
+          "International Stocks",
+          "Roth IRA",
+        ),
+      ).toBe(800);
+
+      // Total US stocks: 6000 + 500 = 6500
+      expect(result.current.currentForAssetClass(mockPortfolio[0])).toBe(6500);
+
+      // Total International: 3000 - 200 = 2800
+      expect(result.current.currentForAssetClass(mockPortfolio[1])).toBe(2800);
+
+      // Overall total: 10000 + 500 - 200 = 10300
+      expect(result.current.totalDollars()).toBe(10300);
+    });
+
+    it("should handle pending changes for accounts with zero initial value", () => {
+      const pendingChanges = {
+        "Bonds|BND|HSA": 1000, // HSA account doesn't exist in initial portfolio
+      };
+
+      const { result } = renderHook(() =>
+        usePortfolioCalculations(mockPortfolio, toInvest, pendingChanges, true),
+      );
+
+      // BND in HSA should now be 1000 (from 0)
+      expect(result.current.totalForAssetClassAccount("Bonds", "HSA")).toBe(
+        1000,
+      );
+
+      // Total bonds: 1000 (original) + 1000 (pending) = 2000
+      expect(result.current.currentForAssetClass(mockPortfolio[2])).toBe(2000);
+
+      // HSA account total should be 1000
+      expect(result.current.totalForAccount("HSA")).toBe(1000);
+
+      // Overall total: 10000 + 1000 = 11000
+      expect(result.current.totalDollars()).toBe(11000);
+    });
+
+    it("should not include pending changes when usePendingValues is false", () => {
+      const pendingChanges = {
+        "US Total Stock Market|VTI|401k": 500,
+      };
+
+      const { result } = renderHook(() =>
+        usePortfolioCalculations(
+          mockPortfolio,
+          toInvest,
+          pendingChanges,
+          false,
+        ),
+      );
+
+      // Should ignore pending changes
+      expect(result.current.totalDollars()).toBe(10000);
+      expect(result.current.currentForAssetClass(mockPortfolio[0])).toBe(6000);
+    });
+
+    it("should handle mixed positive and negative pending changes", () => {
+      const pendingChanges = {
+        "US Total Stock Market|VTI|401k": -1000, // Sell
+        "International Stocks|VXUS|401k": 500, // Buy
+        "Bonds|BND|Roth IRA": 500, // Buy
+      };
+
+      const { result } = renderHook(() =>
+        usePortfolioCalculations(mockPortfolio, toInvest, pendingChanges, true),
+      );
+
+      // US stocks: 6000 - 1000 = 5000
+      expect(result.current.currentForAssetClass(mockPortfolio[0])).toBe(5000);
+
+      // International: 3000 + 500 = 3500
+      expect(result.current.currentForAssetClass(mockPortfolio[1])).toBe(3500);
+
+      // Bonds: 1000 + 500 = 1500
+      expect(result.current.currentForAssetClass(mockPortfolio[2])).toBe(1500);
+
+      // Overall total: 10000 - 1000 + 500 + 500 = 10000 (balanced rebalancing)
+      expect(result.current.totalDollars()).toBe(10000);
+    });
+
+    it("should calculate correct percentages with pending changes", () => {
+      const pendingChanges = {
+        "US Total Stock Market|VTI|401k": 2000, // Add contribution
+      };
+
+      const { result } = renderHook(() =>
+        usePortfolioCalculations(mockPortfolio, toInvest, pendingChanges, true),
+      );
+
+      // Total portfolio: 10000 + 2000 = 12000
+      // US stocks: 6000 + 2000 = 8000
+      // US percentage: 8000 / 12000 = 0.6667
+      expect(result.current.currentPercentage(mockPortfolio[0])).toBeCloseTo(
+        0.6667,
+        4,
+      );
+
+      // International: 3000 / 12000 = 0.25
+      expect(result.current.currentPercentage(mockPortfolio[1])).toBe(0.25);
+    });
+
+    it("should handle pending changes across multiple funds in same asset class", () => {
+      const portfolioWithMultipleFunds: AssetClass[] = [
+        {
+          name: "US Total Stock Market",
+          allocation: createPercentage(60),
+          funds: [
+            {
+              ticker: "VTI" as any,
+              values: {
+                "401k": createDollarAmount(3000),
+              },
+              key: "vti-key",
+            },
+            {
+              ticker: "VTSAX" as any,
+              values: {
+                "Roth IRA": createDollarAmount(2000),
+              },
+              key: "vtsax-key",
+            },
+          ],
+          key: "us-stocks-key" as any,
+        },
+      ];
+
+      const pendingChanges = {
+        "US Total Stock Market|VTI|401k": 500,
+        "US Total Stock Market|VTSAX|Roth IRA": -300,
+      };
+
+      const { result } = renderHook(() =>
+        usePortfolioCalculations(
+          portfolioWithMultipleFunds,
+          toInvest,
+          pendingChanges,
+          true,
+        ),
+      );
+
+      // US stocks total: (3000 + 500) + (2000 - 300) = 5200
+      expect(
+        result.current.currentForAssetClass(portfolioWithMultipleFunds[0]),
+      ).toBe(5200);
     });
   });
 });
