@@ -147,7 +147,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install chromium firefox --with-deps
       - name: Run Playwright tests
         run: npm run test:e2e
       - uses: actions/upload-artifact@v5

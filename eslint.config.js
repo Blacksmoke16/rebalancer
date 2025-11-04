@@ -41,8 +41,6 @@ export default tseslint.config(
           allowNumber: true,
         },
       ],
-      // Disable problematic rule due to typescript-eslint v8 compatibility issue
-      "@typescript-eslint/unified-signatures": "off",
     },
   },
   // Relaxed rules for test files
