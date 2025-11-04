@@ -45,7 +45,7 @@ export function NumberField({
 
   return (
     <NumberInput
-      min={0}
+      min={allowNegative ? undefined : 0}
       allowDecimal={false}
       thousandSeparator={thousandSeparator}
       leftSection={finalLeftSection}

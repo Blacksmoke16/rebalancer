@@ -23,6 +23,10 @@ import { PortfolioInputTable } from "./PortfolioInputTable";
 import { RebalancingAnalysisTable } from "./RebalancingAnalysisTable";
 import { SettingsErrorBoundary } from "./SettingsErrorBoundary";
 import { SettingsLoadingSkeleton } from "./ui/LoadingSkeleton";
+import {
+  PlanningModeToggle,
+  PlanningModeAlert,
+} from "./ui/PlanningModeControls";
 import { PortfolioSummaryCards } from "./ui/PortfolioSummaryCards";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
 import { useTabPersistence } from "../hooks/useTabPersistence";
@@ -63,7 +67,11 @@ export function AppContent() {
       return (
         <Stack gap="xl">
           <PortfolioSummaryCards />
-          <Title order={2}>Current Holdings</Title>
+          <Group justify="space-between" align="center">
+            <Title order={2}>Current Holdings</Title>
+            <PlanningModeToggle />
+          </Group>
+          <PlanningModeAlert />
           <PortfolioInputTable />
           <Title order={2}>Rebalancing Analysis</Title>
           <RebalancingAnalysisTable />

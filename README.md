@@ -9,6 +9,7 @@ A privacy-focused portfolio rebalancing tool that helps you optimize your invest
 
 - **Portfolio Analysis**: View current vs target allocation across all your asset classes and accounts
 - **Rebalancing Recommendations**: Get precise dollar amounts for where to invest new money
+- **Planning Mode**: Plan complex transactions before applying them, with real-time balance and analysis
 - **Responsive Design**: Works perfectly on desktop and mobile devices
 - **Privacy First**: All data is stored locally in your browser - nothing is sent to servers
 - **Real-time Calculations**: Instant updates as you modify your portfolio or investment amounts

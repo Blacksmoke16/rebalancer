@@ -4,6 +4,7 @@ import {
   IconSettings2,
   IconFileImport,
   IconCalculator,
+  IconClipboard,
 } from "@tabler/icons-react";
 import { memo } from "react";
 
@@ -83,7 +84,23 @@ export const Homepage = memo(function Homepage() {
             <Text>
               Uses the new contribution rebalancing technique to move
               towards/maintain your target allocation while minimizing
-              transactions/taxes
+              transactions/taxes.
+            </Text>
+          </Stack>
+        </Card>
+
+        <Card withBorder p="lg">
+          <Stack gap="sm">
+            <Title order={3} size="h4">
+              <IconClipboard
+                size={20}
+                style={{ verticalAlign: "middle", marginRight: "8px" }}
+              />
+              Planning mode
+            </Title>
+            <Text>
+              Allows entering fund specific buys/sells that update the
+              rebalancing analysis in real time. Useful for yearly rebalancing.
             </Text>
           </Stack>
         </Card>
