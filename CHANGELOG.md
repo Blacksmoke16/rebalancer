@@ -14,6 +14,7 @@
 
 - Relax fund name validation to avoid state in which the save button is permanently disabled ([#16]) (George Dietrich)
 
+[0.2.0]: https://github.com/blacksmoke16/rebalancer/releases/tag/v0.2.0
 [#16]: https://github.com/Blacksmoke16/rebalancer/pull/16
 [#21]: https://github.com/Blacksmoke16/rebalancer/pull/21
 
