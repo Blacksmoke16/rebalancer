@@ -67,11 +67,19 @@ export function useAccountForm({
     [form],
   );
 
+  const reorderAccounts = useCallback(
+    (from: number, to: number) => {
+      form.reorderListItem("accounts", { from, to });
+    },
+    [form],
+  );
+
   return {
     form,
     handleSubmit,
     addAccount,
     removeAccount,
+    reorderAccounts,
     isLoading,
   };
 }

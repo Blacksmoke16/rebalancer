@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.0] - 2025-12-20
+
+### Added
+
+- Add drag-and-drop reordering for investment accounts in Settings ([#31]) (George Dietrich)
+
+[0.3.0]: https://github.com/blacksmoke16/rebalancer/releases/tag/v0.3.0
+[#31]: https://github.com/Blacksmoke16/rebalancer/pull/31
+
 ## [0.2.0] - 2025-11-03
 
 ### Changed
