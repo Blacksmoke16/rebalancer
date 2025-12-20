@@ -2,6 +2,7 @@ import { formRootRule, isNotEmpty, useForm } from "@mantine/form";
 import { randomId } from "@mantine/hooks";
 import { useCallback, useEffect } from "react";
 import { AssetClass } from "../types";
+import { AssetClassId, FundTicker, Percentage } from "../types/branded";
 import { validation, validateAndTransform } from "../utils/validation";
 
 interface UseAssetClassFormProps {
@@ -96,9 +97,9 @@ export function useAssetClassForm({
   const addAssetClass = useCallback(() => {
     form.insertListItem("portfolio", {
       name: "",
-      allocation: 0,
-      funds: [{ ticker: "", values: {}, key: randomId() }],
-      key: randomId(),
+      allocation: 0 as Percentage,
+      funds: [{ ticker: "" as FundTicker, values: {}, key: randomId() }],
+      key: randomId() as AssetClassId,
     });
     form.clearFieldError("portfolio");
   }, [form]);
@@ -113,7 +114,7 @@ export function useAssetClassForm({
   const addFund = useCallback(
     (assetClassIndex: number) => {
       form.insertListItem(`portfolio.${assetClassIndex}.funds`, {
-        ticker: "",
+        ticker: "" as FundTicker,
         values: {},
         key: randomId(),
       });

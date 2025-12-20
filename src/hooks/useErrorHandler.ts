@@ -10,18 +10,15 @@ interface ErrorHandlerOptions {
 
 export function useErrorHandler() {
   const handleError = useCallback(
-    (
-      error: unknown,
-      type: ErrorType = "general",
-      options: ErrorHandlerOptions = {},
-    ) => {
-      const { showNotification = true, logToConsole = true } = options;
+    (error: unknown, type?: ErrorType, options?: ErrorHandlerOptions) => {
+      const effectiveType = type ?? "general";
+      const { showNotification = true, logToConsole = true } = options ?? {};
 
       const errorMessage =
         error instanceof Error ? error.message : String(error);
 
       if (logToConsole) {
-        console.error(`[${type.toUpperCase()}]`, error);
+        console.error(`[${effectiveType.toUpperCase()}]`, error);
       }
 
       if (showNotification) {
@@ -40,8 +37,8 @@ export function useErrorHandler() {
         };
 
         notifications.show({
-          title: titles[type],
-          message: errorMessage || messages[type],
+          title: titles[effectiveType],
+          message: errorMessage || messages[effectiveType],
           color: "red",
           autoClose: 5000,
         });
@@ -53,8 +50,8 @@ export function useErrorHandler() {
   const handleAsyncError = useCallback(
     async <T>(
       asyncFn: () => Promise<T>,
-      type: ErrorType = "general",
-      options: ErrorHandlerOptions = {},
+      type?: ErrorType,
+      options?: ErrorHandlerOptions,
     ): Promise<T | null> => {
       try {
         return await asyncFn();
