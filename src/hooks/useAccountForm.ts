@@ -2,6 +2,7 @@ import { formRootRule, useForm } from "@mantine/form";
 import { randomId } from "@mantine/hooks";
 import { useCallback, useEffect, useState } from "react";
 import { Account } from "../types";
+import { AccountId } from "../types/branded";
 import { validateAndTransform } from "../utils/validation";
 
 interface UseAccountFormProps {
@@ -54,7 +55,7 @@ export function useAccountForm({
   const addAccount = useCallback(() => {
     form.insertListItem("accounts", {
       name: "",
-      key: randomId(),
+      key: randomId() as AccountId,
     });
     form.clearFieldError("accounts");
   }, [form]);
