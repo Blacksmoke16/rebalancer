@@ -147,7 +147,7 @@ export const Homepage = memo(function Homepage() {
               />
               Free and Open Source
             </Title>
-            <Text>Free, without adds, fully open source MIT licensed.</Text>
+            <Text>Free, without ads, fully open source MIT licensed.</Text>
             <Text size="sm" c="dimmed">
               Support development:{" "}
               <Anchor
