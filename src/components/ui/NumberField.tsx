@@ -1,7 +1,7 @@
 import { NumberInput, NumberInputProps } from "@mantine/core";
+import type { NumberFormatValues } from "react-number-format";
 import { useCallback } from "react";
 import { FORMATTING, UI } from "../../constants";
-import { validation } from "../../utils/validation";
 
 interface NumberFieldProps
   extends Omit<NumberInputProps, "onBlur" | "onValueChange"> {
@@ -22,14 +22,11 @@ export function NumberField({
   ...props
 }: NumberFieldProps) {
   const handleValueChange = useCallback(
-    (value: string | number): void => {
+    (values: NumberFormatValues): void => {
       if (!onValueChange) return;
-
-      const parsedValue =
-        typeof value === "string" ? validation.parseAmount(value) : value || 0;
+      let finalValue = values.floatValue ?? 0;
 
       // Apply constraints based on field type
-      let finalValue = parsedValue;
       if (!allowNegative && finalValue < 0) {
         finalValue = 0;
       }
@@ -49,7 +46,7 @@ export function NumberField({
       allowDecimal={false}
       thousandSeparator={thousandSeparator}
       leftSection={finalLeftSection}
-      onChange={handleValueChange}
+      onValueChange={handleValueChange}
       size={size}
       {...props}
     />

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1] - 2026-01-01
+
+### Fixed
+
+- Fix planning mode input not clearing on select-all + delete (George Dietrich)
+
+[0.3.1]: https://github.com/blacksmoke16/rebalancer/releases/tag/v0.3.1
+
 ## [0.3.0] - 2025-12-20
 
 ### Added
