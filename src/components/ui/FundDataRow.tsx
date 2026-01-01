@@ -54,7 +54,7 @@ export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
                 <NumberField
                   isCurrency
                   allowNegative
-                  value={pendingChange === 0 ? undefined : pendingChange}
+                  value={pendingChange === 0 ? "" : pendingChange}
                   placeholder={`Current: $${currentValue.toLocaleString()}`}
                   data-testid={`${fund.ticker}-${account.name}-pending-value`}
                   onValueChange={(value) => {

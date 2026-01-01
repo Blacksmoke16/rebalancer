@@ -280,4 +280,34 @@ test.describe("Planning Mode", () => {
     await expect(page.getByText("Projected ($)")).toBeVisible();
     await expect(page.getByText("Projected (%)")).toBeVisible();
   });
+
+  test("Clear Input - Select All and Delete clears value completely", async ({
+    page,
+  }) => {
+    // 1. Navigate to Portfolio page and enter planning mode
+    await page.goto("http://localhost:5173");
+    await page.getByRole("link", { name: "Portfolio" }).click();
+    await page.getByRole("button", { name: "Plan Transactions" }).click();
+
+    const input = page.getByTestId("VTI-401k-pending-value");
+
+    // 2. Type a negative value character by character (to trigger formatting)
+    await input.click();
+    await page.keyboard.type("-3210");
+    await expect(page.getByText("Unaccounted Sales")).toBeVisible();
+
+    // 3. Select all (Ctrl+A) and delete
+    await input.focus();
+    await page.keyboard.press("Control+a");
+    await page.keyboard.press("Backspace");
+
+    // 4. Verify input is cleared
+    await expect(input).toHaveValue("");
+
+    // 5. Verify state returns to initial (no pending changes)
+    await expect(page.getByText("Planning Mode Active")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Apply Changes" }),
+    ).toBeDisabled();
+  });
 });
