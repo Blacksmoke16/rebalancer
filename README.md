@@ -18,7 +18,7 @@ A privacy-focused portfolio rebalancing tool that helps you optimize your invest
 
 ### Prerequisites
 
-- Node.js 22+
+- Node.js 24+
 - npm
 
 ### Getting Started
