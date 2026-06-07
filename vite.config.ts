@@ -13,5 +13,9 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     exclude: ["**/node_modules/**", "**/dist/**", "**/tests/**"],
+    // Randomize order to surface inter-test ordering dependencies.
+    sequence: { shuffle: true },
+    // Restore globals patched via vi.stubGlobal between tests.
+    unstubGlobals: true,
   },
 });

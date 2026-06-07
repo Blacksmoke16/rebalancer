@@ -33,7 +33,7 @@ export const AssetClassHeaderRow = memo<AssetClassHeaderRowProps>(
                   <CurrencyCell
                     value={totalForAssetClassAccount(
                       assetClass.name,
-                      account.name,
+                      account.key,
                     )}
                   />
                 </div>

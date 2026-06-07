@@ -24,7 +24,7 @@ export const AccountTotalsRow = memo<AccountTotalsRowProps>(
           {accounts.map((account) => (
             <TableTd key={`${account.key}-total`}>
               <Center>
-                <CurrencyCell value={totalForAccount(account.name)} />
+                <CurrencyCell value={totalForAccount(account.key)} />
               </Center>
             </TableTd>
           ))}

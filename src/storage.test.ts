@@ -319,6 +319,42 @@ describe("Storage Utilities", () => {
       expect(result).toEqual(mockData);
     });
 
+    it("remaps name-keyed balances onto account ids on import", async () => {
+      const oldFormat = {
+        accounts: [
+          { name: "401k", key: "acct-1" },
+          { name: "Roth IRA", key: "acct-2" },
+        ],
+        portfolio: [
+          {
+            name: "US Total Stock Market",
+            allocation: 100,
+            key: "ac-1",
+            funds: [
+              {
+                ticker: "VTI",
+                key: "f-1",
+                values: { "401k": 1000, "Roth IRA": 500 },
+              },
+            ],
+          },
+        ],
+        toInvest: 0,
+        version: "1.0.0",
+        lastSaved: "2024-01-01T00:00:00.000Z",
+      };
+      const mockFile = new File([JSON.stringify(oldFormat)], "portfolio.json", {
+        type: "application/json",
+      });
+
+      const result = await importPortfolioData(mockFile);
+
+      expect(result.portfolio[0].funds[0].values).toEqual({
+        "acct-1": 1000,
+        "acct-2": 500,
+      });
+    });
+
     it("should reject invalid JSON files", async () => {
       const mockFile = new File(["invalid json"], "portfolio.json", {
         type: "application/json",
@@ -359,11 +395,65 @@ describe("Storage Utilities", () => {
         };
       });
 
-      (global as any).FileReader = mockFileReader;
+      vi.stubGlobal("FileReader", mockFileReader);
 
       await expect(importPortfolioData(mockFile)).rejects.toThrow(
         "Failed to read file",
       );
+    });
+  });
+
+  describe("balance key migration", () => {
+    const accounts = [
+      { name: "401k", key: "acct-1" },
+      { name: "Roth IRA", key: "acct-2" },
+    ];
+
+    function portfolioWithBalances(values: Record<string, number>) {
+      return [
+        {
+          name: "US Total Stock Market",
+          allocation: 100,
+          key: "ac-1",
+          funds: [{ ticker: "VTI", key: "f-1", values }],
+        },
+      ];
+    }
+
+    function storedData(values: Record<string, number>) {
+      return {
+        accounts,
+        portfolio: portfolioWithBalances(values),
+        toInvest: 0,
+        version: "1.0.0",
+        lastSaved: "2024-01-01T00:00:00.000Z",
+      };
+    }
+
+    it("remaps name-keyed balances onto account ids when loading", () => {
+      (localStorage.getItem as any).mockReturnValue(
+        JSON.stringify(storedData({ "401k": 1000, "Roth IRA": 500 })),
+      );
+
+      const result = loadPortfolioData();
+
+      expect(result?.portfolio[0].funds[0].values).toEqual({
+        "acct-1": 1000,
+        "acct-2": 500,
+      });
+    });
+
+    it("leaves already id-keyed balances untouched (idempotent)", () => {
+      (localStorage.getItem as any).mockReturnValue(
+        JSON.stringify(storedData({ "acct-1": 1000, "acct-2": 500 })),
+      );
+
+      const result = loadPortfolioData();
+
+      expect(result?.portfolio[0].funds[0].values).toEqual({
+        "acct-1": 1000,
+        "acct-2": 500,
+      });
     });
   });
 

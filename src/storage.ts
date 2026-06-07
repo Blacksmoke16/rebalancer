@@ -1,6 +1,6 @@
 import { STORAGE } from "./constants";
-import { Account, AssetClass, PortfolioData } from "./types";
-import { createDollarAmount, DollarAmount } from "./types/branded";
+import { Account, AccountBalances, AssetClass, PortfolioData } from "./types";
+import { AccountId, createDollarAmount, DollarAmount } from "./types/branded";
 import { defaultAccounts, defaultAssetClasses } from "./utils";
 
 export function savePortfolioData(
@@ -47,7 +47,7 @@ export function loadPortfolioData(): PortfolioData | null {
       return null;
     }
 
-    return data;
+    return migrateBalanceKeys(data);
   } catch {
     console.error("Failed to load portfolio data from localStorage");
     return null;
@@ -55,13 +55,43 @@ export function loadPortfolioData(): PortfolioData | null {
 }
 
 export function getDefaultPortfolioData(): PortfolioData {
+  const accounts = defaultAccounts();
   return {
-    accounts: defaultAccounts(),
-    portfolio: defaultAssetClasses(),
+    accounts,
+    portfolio: defaultAssetClasses(accounts),
     toInvest: createDollarAmount(0),
     version: STORAGE.VERSION,
     lastSaved: new Date().toISOString(),
   };
+}
+
+// Holdings are keyed by account id. Data saved by earlier versions keyed them
+// by account name, which orphaned balances whenever an account was renamed.
+// This remaps any name-keyed balances onto the matching account's id, leaving
+// already id-keyed (or unrecognized) entries untouched so it is safe to re-run.
+function migrateBalanceKeys(data: PortfolioData): PortfolioData {
+  const idByName = new Map<string, AccountId>();
+  const knownIds = new Set<string>();
+  for (const account of data.accounts) {
+    idByName.set(account.name, account.key);
+    knownIds.add(account.key);
+  }
+
+  const portfolio = data.portfolio.map((assetClass) => ({
+    ...assetClass,
+    funds: assetClass.funds.map((fund) => {
+      const values: AccountBalances = {};
+      for (const [key, value] of Object.entries(fund.values)) {
+        const idForName = idByName.get(key);
+        const targetId =
+          idForName && !knownIds.has(key) ? idForName : (key as AccountId);
+        values[targetId] = value;
+      }
+      return { ...fund, values };
+    }),
+  }));
+
+  return { ...data, portfolio };
 }
 
 export function exportPortfolioData(
@@ -103,7 +133,7 @@ export function importPortfolioData(file: File): Promise<PortfolioData> {
           return;
         }
 
-        resolve(data);
+        resolve(migrateBalanceKeys(data));
       } catch {
         reject(new Error("Failed to parse JSON file"));
       }

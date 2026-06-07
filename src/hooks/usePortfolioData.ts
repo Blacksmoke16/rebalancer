@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { STORAGE } from "../constants";
 import { loadPortfolioData, savePortfolioData } from "../storage";
 import { Account, AssetClass } from "../types";
-import { createDollarAmount, DollarAmount } from "../types/branded";
+import { AccountId, createDollarAmount, DollarAmount } from "../types/branded";
 import { defaultAccounts, defaultAssetClasses } from "../utils";
 
 export type PendingChanges = Record<string, number>;
@@ -11,9 +11,9 @@ export type PendingChanges = Record<string, number>;
 function getPendingChangeKey(
   assetClassName: string,
   fundTicker: string,
-  accountName: string,
+  accountId: AccountId,
 ): string {
-  return `${assetClassName}|${fundTicker}|${accountName}`;
+  return `${assetClassName}|${fundTicker}|${accountId}`;
 }
 
 interface UsePortfolioDataReturn {
@@ -26,13 +26,13 @@ interface UsePortfolioDataReturn {
   updateAssetAccountValue: (
     assetClassName: string,
     fundTicker: string,
-    accountName: string,
+    accountId: AccountId,
     value: number,
   ) => void;
   updatePendingChange: (
     assetClassName: string,
     fundTicker: string,
-    accountName: string,
+    accountId: AccountId,
     changeAmount: number,
   ) => void;
   enterPlanningMode: () => void;
@@ -55,7 +55,7 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     defaultAccounts(),
   );
   const [portfolio, portfolioList] = useListState<AssetClass>(() =>
-    defaultAssetClasses(),
+    defaultAssetClasses(accounts),
   );
   const [toInvest, setToInvest] = useState(() => createDollarAmount(1500));
   const [isLoaded, setIsLoaded] = useState(false);
@@ -106,7 +106,7 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     (
       assetClassName: string,
       fundTicker: string,
-      accountName: string,
+      accountId: AccountId,
       value: number,
     ): void => {
       portfolioList.setState((prev) =>
@@ -122,7 +122,7 @@ export function usePortfolioData(): UsePortfolioDataReturn {
                 ...fund,
                 values: {
                   ...fund.values,
-                  [accountName]: createDollarAmount(value),
+                  [accountId]: createDollarAmount(value),
                 },
               };
             }),
@@ -150,7 +150,7 @@ export function usePortfolioData(): UsePortfolioDataReturn {
 
   const resetToDefaults = useCallback((): void => {
     const defaultAccountsList = defaultAccounts();
-    const defaultPortfolioList = defaultAssetClasses();
+    const defaultPortfolioList = defaultAssetClasses(defaultAccountsList);
     const defaultToInvestValue = createDollarAmount(1500);
 
     accountList.setState(defaultAccountsList);
@@ -169,10 +169,10 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     (
       assetClassName: string,
       fundTicker: string,
-      accountName: string,
+      accountId: AccountId,
       changeAmount: number,
     ): void => {
-      const key = getPendingChangeKey(assetClassName, fundTicker, accountName);
+      const key = getPendingChangeKey(assetClassName, fundTicker, accountId);
       setPendingChanges((prev) => {
         // Remove the entry if the change is zero
         if (changeAmount === 0) {
@@ -202,7 +202,11 @@ export function usePortfolioData(): UsePortfolioDataReturn {
   const applyPendingChanges = useCallback((): void => {
     // Apply each pending change to the actual holdings
     Object.entries(pendingChanges).forEach(([key, changeAmount]) => {
-      const [assetClassName, fundTicker, accountName] = key.split("|");
+      const [assetClassName, fundTicker, accountId] = key.split("|") as [
+        string,
+        string,
+        AccountId,
+      ];
 
       // Find current value
       const assetClass = portfolio.find((ac) => ac.name === assetClassName);
@@ -211,16 +215,11 @@ export function usePortfolioData(): UsePortfolioDataReturn {
       const fund = assetClass.funds.find((f) => f.ticker === fundTicker);
       if (!fund) return;
 
-      const currentValue = fund.values[accountName] ?? 0;
+      const currentValue = fund.values[accountId] ?? 0;
       const newValue = currentValue + changeAmount;
 
       // Update the value
-      updateAssetAccountValue(
-        assetClassName,
-        fundTicker,
-        accountName,
-        newValue,
-      );
+      updateAssetAccountValue(assetClassName, fundTicker, accountId, newValue);
     });
 
     // Clear planning mode state

@@ -49,7 +49,7 @@ const MobilePortfolioLayout = memo(function MobilePortfolioLayout({
                         {account.name}:
                       </Text>
                       <Text size="sm">
-                        ${(fund.values[account.name] || 0).toLocaleString()}
+                        ${(fund.values[account.key] || 0).toLocaleString()}
                       </Text>
                     </Group>
                   ))}

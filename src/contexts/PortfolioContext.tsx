@@ -2,13 +2,13 @@ import { useListState } from "@mantine/hooks";
 import { createContext, use } from "react";
 import { PendingChanges } from "../hooks/usePortfolioData";
 import { Account, AssetClass } from "../types";
-import { DollarAmount } from "../types/branded";
+import { AccountId, DollarAmount } from "../types/branded";
 
 export interface CalculationMethods {
-  totalForAccount: (accountName: string) => number;
+  totalForAccount: (accountId: AccountId) => number;
   totalForAssetClassAccount: (
     assetClassName: string,
-    accountName: string,
+    accountId: AccountId,
   ) => number;
   currentForAssetClass: (assetClass: AssetClass) => number;
   totalDollars: () => number;
@@ -28,13 +28,13 @@ export interface PortfolioContextValue {
   updateAssetAccountValue: (
     assetClassName: string,
     fundTicker: string,
-    accountName: string,
+    accountId: AccountId,
     value: number,
   ) => void;
   updatePendingChange: (
     assetClassName: string,
     fundTicker: string,
-    accountName: string,
+    accountId: AccountId,
     changeAmount: number,
   ) => void;
   enterPlanningMode: () => void;
