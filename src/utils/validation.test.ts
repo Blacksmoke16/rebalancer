@@ -262,7 +262,7 @@ describe("validateAndTransform", () => {
       expect(result2.isValid).toBe(false);
       expect(result2.error).toBe("Must be a number between 0 and 100");
 
-      const result3 = validateAndTransform.percentage("50" as any);
+      const result3 = validateAndTransform.percentage("50");
       expect(result3.isValid).toBe(false);
       expect(result3.error).toBe("Must be a number between 0 and 100");
     });
