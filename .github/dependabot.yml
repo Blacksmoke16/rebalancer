@@ -22,6 +22,8 @@ updates:
         patterns:
           - "@types/react*"
           - "react*"
+          - "jsdom"
+          - "globals"
       testing:
         patterns:
           - "@playwright/*"
