@@ -1,10 +1,22 @@
 import { describe, it, expect } from "vitest";
 import { renderHook } from "../test/utils";
 import { usePortfolioCalculations } from "./usePortfolioCalculations";
-import { createDollarAmount, createPercentage } from "../types/branded";
+import {
+  AccountId,
+  createDollarAmount,
+  createPercentage,
+} from "../types/branded";
 import type { AssetClass } from "../types";
 
 describe("usePortfolioCalculations", () => {
+  // Holdings are keyed by account id; these stand in for those ids in the mocks.
+  const ACCOUNT_IDS = {
+    k401: "401k" as AccountId,
+    roth: "Roth IRA" as AccountId,
+    brokerage: "Brokerage" as AccountId,
+    hsa: "HSA" as AccountId,
+  };
+
   const mockPortfolio = [
     {
       name: "US Total Stock Market",
@@ -85,9 +97,9 @@ describe("usePortfolioCalculations", () => {
         usePortfolioCalculations(mockPortfolio, toInvest),
       );
 
-      expect(result.current.totalForAccount("401k")).toBe(5000); // 3000 + 1500 + 500
-      expect(result.current.totalForAccount("Roth IRA")).toBe(3300); // 2000 + 1000 + 300
-      expect(result.current.totalForAccount("Brokerage")).toBe(1700); // 1000 + 500 + 200
+      expect(result.current.totalForAccount(ACCOUNT_IDS.k401)).toBe(5000); // 3000 + 1500 + 500
+      expect(result.current.totalForAccount(ACCOUNT_IDS.roth)).toBe(3300); // 2000 + 1000 + 300
+      expect(result.current.totalForAccount(ACCOUNT_IDS.brokerage)).toBe(1700); // 1000 + 500 + 200
     });
 
     it("should return zero for non-existent account", () => {
@@ -95,7 +107,9 @@ describe("usePortfolioCalculations", () => {
         usePortfolioCalculations(mockPortfolio, toInvest),
       );
 
-      expect(result.current.totalForAccount("NonExistent")).toBe(0);
+      expect(result.current.totalForAccount("NonExistent" as AccountId)).toBe(
+        0,
+      );
     });
 
     it("should calculate total for asset class in specific account", () => {
@@ -106,17 +120,20 @@ describe("usePortfolioCalculations", () => {
       expect(
         result.current.totalForAssetClassAccount(
           "US Total Stock Market",
-          "401k",
+          ACCOUNT_IDS.k401,
         ),
       ).toBe(3000);
       expect(
         result.current.totalForAssetClassAccount(
           "International Stocks",
-          "Roth IRA",
+          ACCOUNT_IDS.roth,
         ),
       ).toBe(1000);
       expect(
-        result.current.totalForAssetClassAccount("Bonds", "Brokerage"),
+        result.current.totalForAssetClassAccount(
+          "Bonds",
+          ACCOUNT_IDS.brokerage,
+        ),
       ).toBe(200);
     });
 
@@ -126,12 +143,15 @@ describe("usePortfolioCalculations", () => {
       );
 
       expect(
-        result.current.totalForAssetClassAccount("NonExistent", "401k"),
+        result.current.totalForAssetClassAccount(
+          "NonExistent",
+          ACCOUNT_IDS.k401,
+        ),
       ).toBe(0);
       expect(
         result.current.totalForAssetClassAccount(
           "US Total Stock Market",
-          "NonExistent",
+          "NonExistent" as AccountId,
         ),
       ).toBe(0);
     });
@@ -394,7 +414,7 @@ describe("usePortfolioCalculations", () => {
       expect(
         result.current.totalForAssetClassAccount(
           "US Total Stock Market",
-          "401k",
+          ACCOUNT_IDS.k401,
         ),
       ).toBe(3500);
 
@@ -402,7 +422,7 @@ describe("usePortfolioCalculations", () => {
       expect(
         result.current.totalForAssetClassAccount(
           "International Stocks",
-          "Roth IRA",
+          ACCOUNT_IDS.roth,
         ),
       ).toBe(800);
 
@@ -426,15 +446,15 @@ describe("usePortfolioCalculations", () => {
       );
 
       // BND in HSA should now be 1000 (from 0)
-      expect(result.current.totalForAssetClassAccount("Bonds", "HSA")).toBe(
-        1000,
-      );
+      expect(
+        result.current.totalForAssetClassAccount("Bonds", ACCOUNT_IDS.hsa),
+      ).toBe(1000);
 
       // Total bonds: 1000 (original) + 1000 (pending) = 2000
       expect(result.current.currentForAssetClass(mockPortfolio[2])).toBe(2000);
 
       // HSA account total should be 1000
-      expect(result.current.totalForAccount("HSA")).toBe(1000);
+      expect(result.current.totalForAccount(ACCOUNT_IDS.hsa)).toBe(1000);
 
       // Overall total: 10000 + 1000 = 11000
       expect(result.current.totalDollars()).toBe(11000);
@@ -513,14 +533,14 @@ describe("usePortfolioCalculations", () => {
             {
               ticker: "VTI" as any,
               values: {
-                "401k": createDollarAmount(3000),
+                [ACCOUNT_IDS.k401]: createDollarAmount(3000),
               },
               key: "vti-key",
             },
             {
               ticker: "VTSAX" as any,
               values: {
-                "Roth IRA": createDollarAmount(2000),
+                [ACCOUNT_IDS.roth]: createDollarAmount(2000),
               },
               key: "vtsax-key",
             },

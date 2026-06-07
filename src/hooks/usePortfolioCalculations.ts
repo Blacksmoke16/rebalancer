@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { AssetClass } from "../types";
+import { AccountId } from "../types/branded";
 import { PendingChanges } from "./usePortfolioData";
 
 interface UsePortfolioCalculationsReturn {
@@ -7,10 +8,10 @@ interface UsePortfolioCalculationsReturn {
   currentPercentage: (assetClass: AssetClass) => number;
   targetDollars: (assetClass: AssetClass) => number;
   amountToBuy: (assetClass: AssetClass) => number;
-  totalForAccount: (accountName: string) => number;
+  totalForAccount: (accountId: AccountId) => number;
   totalForAssetClassAccount: (
     assetClassName: string,
-    accountName: string,
+    accountId: AccountId,
   ) => number;
   totalDollars: () => number;
 }
@@ -18,9 +19,9 @@ interface UsePortfolioCalculationsReturn {
 function getPendingChangeKey(
   assetClassName: string,
   fundTicker: string,
-  accountName: string,
+  accountId: AccountId,
 ): string {
-  return `${assetClassName}|${fundTicker}|${accountName}`;
+  return `${assetClassName}|${fundTicker}|${accountId}`;
 }
 
 export function usePortfolioCalculations(
@@ -35,12 +36,12 @@ export function usePortfolioCalculations(
       currentValue: number,
       assetClassName: string,
       fundTicker: string,
-      accountName: string,
+      accountId: AccountId,
     ): number => {
       if (!usePendingValues) {
         return currentValue;
       }
-      const key = getPendingChangeKey(assetClassName, fundTicker, accountName);
+      const key = getPendingChangeKey(assetClassName, fundTicker, accountId);
       const pendingChange = pendingChanges[key] ?? 0;
       return currentValue + pendingChange;
     },
@@ -54,12 +55,12 @@ export function usePortfolioCalculations(
         assetClass.funds.reduce((fundAcc, fund) => {
           // Sum values from existing fund.values entries
           let fundTotal = Object.entries(fund.values).reduce(
-            (valueAcc, [accountName, value]) => {
+            (valueAcc, [accountId, value]) => {
               const effectiveValue = getEffectiveValue(
                 value,
                 assetClass.name,
                 fund.ticker,
-                accountName,
+                accountId as AccountId,
               );
               return valueAcc + effectiveValue;
             },
@@ -100,17 +101,17 @@ export function usePortfolioCalculations(
 
   // Stable utility functions that only depend on portfolio structure
   const totalForAccount = useCallback(
-    (accountName: string): number => {
+    (accountId: AccountId): number => {
       return portfolio.reduce((assetAcc, assetClass) => {
         return (
           assetAcc +
           assetClass.funds.reduce((fundAcc, fund) => {
-            const currentValue = fund.values[accountName] ?? 0;
+            const currentValue = fund.values[accountId] ?? 0;
             const effectiveValue = getEffectiveValue(
               currentValue,
               assetClass.name,
               fund.ticker,
-              accountName,
+              accountId,
             );
             return fundAcc + effectiveValue;
           }, 0)
@@ -121,17 +122,17 @@ export function usePortfolioCalculations(
   );
 
   const totalForAssetClassAccount = useCallback(
-    (assetClassName: string, accountName: string): number => {
+    (assetClassName: string, accountId: AccountId): number => {
       const assetClass = portfolio.find((ac) => ac.name === assetClassName);
       if (!assetClass) return 0;
 
       return assetClass.funds.reduce((fundAcc, fund) => {
-        const currentValue = fund.values[accountName] ?? 0;
+        const currentValue = fund.values[accountId] ?? 0;
         const effectiveValue = getEffectiveValue(
           currentValue,
           assetClass.name,
           fund.ticker,
-          accountName,
+          accountId,
         );
         return fundAcc + effectiveValue;
       }, 0);
@@ -144,12 +145,12 @@ export function usePortfolioCalculations(
       return assetClass.funds.reduce((fundAcc, fund) => {
         // Sum values from existing fund.values entries
         let fundTotal = Object.entries(fund.values).reduce(
-          (valueAcc, [accountName, value]) => {
+          (valueAcc, [accountId, value]) => {
             const effectiveValue = getEffectiveValue(
               value,
               assetClass.name,
               fund.ticker,
-              accountName,
+              accountId as AccountId,
             );
             return valueAcc + effectiveValue;
           },

@@ -16,7 +16,10 @@ export function defaultAccounts(): Account[] {
   ];
 }
 
-export function defaultAssetClasses(): AssetClass[] {
+// Builds the default holdings keyed by the given accounts' ids, so the seeded
+// balances stay attached to those accounts regardless of how they're renamed.
+export function defaultAssetClasses(accounts: Account[]): AssetClass[] {
+  const [taxDeferred, roth, taxable] = accounts;
   return [
     {
       name: "US Total Stock Market",
@@ -25,9 +28,9 @@ export function defaultAssetClasses(): AssetClass[] {
         {
           ticker: createFundTicker("VTI"),
           values: {
-            "401k": createDollarAmount(3730),
-            "Roth IRA": createDollarAmount(6927),
-            "Taxable Brokerage": createDollarAmount(19714),
+            [taxDeferred.key]: createDollarAmount(3730),
+            [roth.key]: createDollarAmount(6927),
+            [taxable.key]: createDollarAmount(19714),
           },
           key: randomId(),
         },
@@ -41,7 +44,7 @@ export function defaultAssetClasses(): AssetClass[] {
         {
           ticker: createFundTicker("VXUS"),
           values: {
-            "401k": createDollarAmount(17573),
+            [taxDeferred.key]: createDollarAmount(17573),
           },
           key: randomId(),
         },
@@ -55,7 +58,7 @@ export function defaultAssetClasses(): AssetClass[] {
         {
           ticker: createFundTicker("BND"),
           values: {
-            "401k": createDollarAmount(5090),
+            [taxDeferred.key]: createDollarAmount(5090),
           },
           key: randomId(),
         },

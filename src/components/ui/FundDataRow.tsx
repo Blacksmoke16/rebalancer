@@ -1,6 +1,7 @@
 import { Stack, TableTd, TableTr, Text } from "@mantine/core";
 import { memo } from "react";
 import { Account, AssetClass, Fund } from "../../types";
+import { AccountId } from "../../types/branded";
 import { usePortfolioContext } from "../../contexts/PortfolioContext";
 import { NumberField } from "./NumberField";
 import classes from "../../App.module.css";
@@ -15,9 +16,9 @@ interface FundDataRowProps {
 function getPendingChangeKey(
   assetClassName: string,
   fundTicker: string,
-  accountName: string,
+  accountId: AccountId,
 ): string {
-  return `${assetClassName}|${fundTicker}|${accountName}`;
+  return `${assetClassName}|${fundTicker}|${accountId}`;
 }
 
 export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
@@ -38,11 +39,11 @@ export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
       {isFirstFund && <TableTd rowSpan={assetClass.funds.length} />}
       <TableTd>{fund.ticker}</TableTd>
       {accounts.map((account) => {
-        const currentValue = fund.values[account.name] || 0;
+        const currentValue = fund.values[account.key] || 0;
         const pendingChangeKey = getPendingChangeKey(
           assetClass.name,
           fund.ticker,
-          account.name,
+          account.key,
         );
         const pendingChange = pendingChanges[pendingChangeKey] || 0;
         const projectedValue = currentValue + pendingChange;
@@ -66,7 +67,7 @@ export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
                     updatePendingChange(
                       assetClass.name,
                       fund.ticker,
-                      account.name,
+                      account.key,
                       cappedValue,
                     );
                   }}
@@ -87,7 +88,7 @@ export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
                   updateAssetAccountValue(
                     assetClass.name,
                     fund.ticker,
-                    account.name,
+                    account.key,
                     value,
                   );
                 }}

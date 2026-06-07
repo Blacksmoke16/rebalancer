@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2] - 2026-06-07
+
+### Fixed
+
+- Fix renaming an account would orphan holdings within that account (George Dietrich)
+
+[0.3.2]: https://github.com/blacksmoke16/rebalancer/releases/tag/v0.3.2
+
 ## [0.3.1] - 2026-01-01
 
 ### Fixed
