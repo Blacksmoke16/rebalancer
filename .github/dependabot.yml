@@ -9,7 +9,6 @@ updates:
     groups:
       eslint:
         patterns:
-          - "@eslint/*"
           - "eslint"
           - "eslint-*"
           - "typescript-eslint"
