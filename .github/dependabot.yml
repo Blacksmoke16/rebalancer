@@ -9,13 +9,15 @@ updates:
     groups:
       eslint:
         patterns:
-          - "@eslint/*"
           - "eslint"
           - "eslint-*"
           - "typescript-eslint"
       mantine:
         patterns:
           - "@mantine*"
+          - "postcss-preset-mantine"
+          - "@tabler/*"
+          - "@dnd-kit/*"
       react:
         patterns:
           - "@types/react*"
