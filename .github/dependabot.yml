@@ -6,33 +6,22 @@ updates:
     schedule:
       interval: "monthly"
 
+    # Minor and patch updates share one pull request; each major update gets
+    # its own so a breaking change doesn't hold up the rest.
     groups:
-      eslint:
+      npm:
         patterns:
-          - "eslint"
-          - "eslint-*"
-          - "typescript-eslint"
-      mantine:
-        patterns:
-          - "@mantine*"
-          - "postcss-preset-mantine"
-          - "@tabler/*"
-          - "@dnd-kit/*"
-      react:
-        patterns:
-          - "@types/react*"
-          - "react*"
-          - "jsdom"
-          - "globals"
-      testing:
-        patterns:
-          - "@playwright/*"
-          - "@vitejs/*"
-          - "@vitest/*"
-          - "vitest"
-          - "vite"
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
+
+    groups:
+      github-actions:
+        patterns:
+          - "*"

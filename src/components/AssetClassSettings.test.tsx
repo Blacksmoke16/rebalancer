@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { renderWithMantine, screen } from "../test/utils";
+import { isInaccessible, renderWithMantine, screen } from "../test/utils";
 import { AssetClass } from "../types";
 import {
   AccountId,
@@ -27,7 +27,9 @@ const portfolio: AssetClass[] = [
 ];
 
 // The settings form renders separate mobile and desktop copies of each
-// input and button; both copies are bound to the same form field.
+// input and button; both copies are bound to the same form field. These
+// queries skip the mobile copies, which are hidden at jsdom's default
+// 1024px viewport.
 function renderAssetClassSettings(onPortfolioChange = vi.fn()) {
   renderWithMantine(
     <AssetClassSettings
@@ -35,12 +37,17 @@ function renderAssetClassSettings(onPortfolioChange = vi.fn()) {
       onPortfolioChange={onPortfolioChange}
     />,
   );
+  // The ticker input has no label, so it can't be found by role and name.
+  const tickerInput = screen
+    .getAllByPlaceholderText("VTI")
+    .find((input) => !isInaccessible(input));
+  if (!tickerInput) throw new Error("No visible ticker input");
   return {
     onPortfolioChange,
-    nameInput: screen.getAllByTestId("asset-class-name-0")[0],
-    allocationInput: screen.getAllByTestId("asset-class-allocation-0")[0],
-    tickerInput: screen.getAllByTestId("fund-ticker-0-0")[0],
-    saveButton: screen.getAllByRole("button", { name: "Save Changes" })[0],
+    nameInput: screen.getByRole("textbox", { name: "Name" }),
+    allocationInput: screen.getByRole("textbox", { name: "Target %" }),
+    tickerInput,
+    saveButton: screen.getByRole("button", { name: "Save Changes" }),
   };
 }
 
