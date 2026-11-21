@@ -1,12 +1,17 @@
-import { Box, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import {
+  Box,
+  Button,
+  Group,
+  Paper,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { memo } from "react";
 import { AssetClass } from "../../types";
-import {
-  AssetClassNameInput,
-  DeleteButton,
-  PercentageInput,
-} from "../ui/FormFields";
+import { DeleteButton, PercentageInput } from "../ui/FormFields";
 import { FundsList } from "./FundsList";
 import classes from "../AssetClassSettings.module.css";
 
@@ -45,7 +50,9 @@ export const AssetClassItem = memo<AssetClassItemProps>(
 
               {/* Mobile Layout - Stack name and percentage */}
               <Stack gap="xs" hiddenFrom="sm">
-                <AssetClassNameInput
+                <TextInput
+                  label="Name"
+                  placeholder="Asset class name"
                   {...form.getInputProps(`portfolio.${assetIdx}.name`)}
                   data-testid={`asset-class-name-${assetIdx}`}
                 />
@@ -57,7 +64,9 @@ export const AssetClassItem = memo<AssetClassItemProps>(
 
               {/* Desktop Layout - Horizontal group */}
               <Group gap="md" visibleFrom="sm">
-                <AssetClassNameInput
+                <TextInput
+                  label="Name"
+                  placeholder="Asset class name"
                   {...form.getInputProps(`portfolio.${assetIdx}.name`)}
                   data-testid={`asset-class-name-${assetIdx}`}
                 />
