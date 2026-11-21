@@ -8,7 +8,12 @@ const localStorageMock = {
   removeItem: vi.fn(),
   clear: vi.fn(),
 };
-global.localStorage = localStorageMock as any;
+// Defined rather than assigned: jsdom's localStorage is getter-only, and
+// assigning to a window global writes through to jsdom's window.
+Object.defineProperty(window, "localStorage", {
+  writable: true,
+  value: localStorageMock,
+});
 
 // Mock window.alert
 global.alert = vi.fn();
