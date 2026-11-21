@@ -1,9 +1,13 @@
-import { formRootRule, isNotEmpty, useForm } from "@mantine/form";
+import { formRootRule, isInRange, isNotEmpty, useForm } from "@mantine/form";
 import { randomId } from "@mantine/hooks";
 import { useCallback, useEffect } from "react";
 import { AssetClass } from "../types";
 import { AssetClassId, FundTicker, Percentage } from "../types/branded";
-import { validation, validateAndTransform } from "../utils/validation";
+import {
+  sanitizeName,
+  validateAllocationSum,
+  validateTicker,
+} from "../utils/validation";
 
 interface UseAssetClassFormProps {
   portfolio: AssetClass[];
@@ -22,25 +26,29 @@ export function useAssetClassForm({
       portfolio: {
         [formRootRule]: (value: AssetClass[]) => {
           if (value.length === 0) return "Must have at least one asset class";
-          return validation.validateAllocationSum(value);
+          return validateAllocationSum(value);
         },
-        name: (value: string) => {
-          const result = validateAndTransform.name(value);
-          return result.isValid ? null : result.error;
-        },
-        allocation: (value: number) => {
-          const result = validateAndTransform.percentage(value);
-          return result.isValid ? null : result.error;
-        },
+        name: isNotEmpty("Name is required"),
+        allocation: isInRange(
+          { min: 0, max: 100 },
+          "Must be a number between 0 and 100",
+        ),
         funds: {
           [formRootRule]: isNotEmpty("Must have at least one fund"),
-          ticker: (value: string) => {
-            const result = validateAndTransform.ticker(value);
-            return result.isValid ? null : result.error;
-          },
+          ticker: validateTicker,
         },
       },
     },
+    transformValues: (values) => ({
+      portfolio: values.portfolio.map((assetClass) => ({
+        ...assetClass,
+        name: sanitizeName(assetClass.name),
+        funds: assetClass.funds.map((fund) => ({
+          ...fund,
+          ticker: fund.ticker.trim() as FundTicker,
+        })),
+      })),
+    }),
   });
 
   // Update form when portfolio prop changes (e.g., after import)

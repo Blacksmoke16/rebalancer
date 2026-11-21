@@ -6,6 +6,7 @@ import {
   Text,
   Stack,
   ActionIcon,
+  TextInput,
 } from "@mantine/core";
 import { memo } from "react";
 import {
@@ -27,7 +28,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { IconGripVertical } from "@tabler/icons-react";
 import { Account } from "../types";
 import { useAccountForm } from "../hooks/useAccountForm";
-import { AccountNameInput, DeleteButton, FieldGroup } from "./ui/FormFields";
+import { DeleteButton } from "./ui/FormFields";
 import classes from "./AccountsSettings.module.css";
 
 interface SortableAccountItemProps {
@@ -60,7 +61,7 @@ function SortableAccountItem({
 
   return (
     <div ref={setNodeRef} style={style} className={classes.accountItem}>
-      <FieldGroup align="flex-end">
+      <Group align="flex-end">
         <ActionIcon
           {...attributes}
           {...listeners}
@@ -71,15 +72,16 @@ function SortableAccountItem({
         >
           <IconGripVertical size={18} />
         </ActionIcon>
-        <AccountNameInput
+        <TextInput
           {...inputProps}
+          label="Name"
           placeholder={`Account ${index + 1} name (e.g., 401k, Roth IRA)`}
         />
         <DeleteButton
           onClick={onRemove}
           aria-label={`Delete account ${account.name || "account"}`}
         />
-      </FieldGroup>
+      </Group>
     </div>
   );
 }

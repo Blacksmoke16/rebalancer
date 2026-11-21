@@ -1,9 +1,9 @@
-import { formRootRule, useForm } from "@mantine/form";
+import { formRootRule, isNotEmpty, useForm } from "@mantine/form";
 import { randomId } from "@mantine/hooks";
 import { useCallback, useEffect, useState } from "react";
 import { Account } from "../types";
 import { AccountId } from "../types/branded";
-import { validateAndTransform } from "../utils/validation";
+import { sanitizeName } from "../utils/validation";
 
 interface UseAccountFormProps {
   accounts: Account[];
@@ -24,12 +24,15 @@ export function useAccountForm({
       accounts: {
         [formRootRule]: (accounts: Account[]) =>
           accounts.length === 0 ? "Must have at least one account" : null,
-        name: (value: string) => {
-          const result = validateAndTransform.name(value);
-          return result.isValid ? null : result.error;
-        },
+        name: isNotEmpty("Name is required"),
       },
     },
+    transformValues: (values) => ({
+      accounts: values.accounts.map((account) => ({
+        ...account,
+        name: sanitizeName(account.name),
+      })),
+    }),
   });
 
   // Update form when accounts prop changes (e.g., after import)

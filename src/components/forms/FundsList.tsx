@@ -1,9 +1,10 @@
-import { Group, Stack } from "@mantine/core";
+import { Group, Stack, TextInput } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { memo } from "react";
 import { AssetClass, Fund } from "../../types";
-import { DeleteButton, TickerInput } from "../ui/FormFields";
+import { DeleteButton } from "../ui/FormFields";
 import classes from "../AssetClassSettings.module.css";
+import commonClasses from "../../styles/common.module.css";
 
 interface FundsListProps {
   funds: Fund[];
@@ -24,7 +25,9 @@ export const FundsList = memo<FundsListProps>(function FundsList({
         <div key={fund.key} className={classes.fundItem}>
           {/* Mobile Layout - Stack vertically */}
           <Stack gap="xs" hiddenFrom="sm">
-            <TickerInput
+            <TextInput
+              placeholder="VTI"
+              className={commonClasses.uppercaseInput}
               {...form.getInputProps(
                 `portfolio.${assetClassIndex}.funds.${fundIdx}.ticker`,
               )}
@@ -43,7 +46,9 @@ export const FundsList = memo<FundsListProps>(function FundsList({
 
           {/* Desktop Layout - Horizontal group */}
           <Group visibleFrom="sm">
-            <TickerInput
+            <TextInput
+              placeholder="VTI"
+              className={commonClasses.uppercaseInput}
               {...form.getInputProps(
                 `portfolio.${assetClassIndex}.funds.${fundIdx}.ticker`,
               )}
