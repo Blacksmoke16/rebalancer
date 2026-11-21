@@ -3,8 +3,10 @@ import type { NumberFormatValues } from "react-number-format";
 import { useCallback } from "react";
 import { FORMATTING, UI } from "../../constants";
 
-interface NumberFieldProps
-  extends Omit<NumberInputProps, "onBlur" | "onValueChange"> {
+interface NumberFieldProps extends Omit<
+  NumberInputProps,
+  "onBlur" | "onValueChange"
+> {
   onValueChange?: (value: number) => void;
   prefix?: string;
   isCurrency?: boolean;
