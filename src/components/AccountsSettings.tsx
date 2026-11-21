@@ -93,14 +93,8 @@ interface AccountsSettingsProps {
 
 export const AccountsSettings = memo<AccountsSettingsProps>(
   function AccountsSettings({ accounts, onAccountsChange }) {
-    const {
-      form,
-      handleSubmit,
-      addAccount,
-      removeAccount,
-      reorderAccounts,
-      isLoading,
-    } = useAccountForm({ accounts, onAccountsChange });
+    const { form, handleSubmit, addAccount, removeAccount, reorderAccounts } =
+      useAccountForm({ accounts, onAccountsChange });
 
     const sensors = useSensors(
       useSensor(PointerSensor, {
@@ -168,16 +162,11 @@ export const AccountsSettings = memo<AccountsSettingsProps>(
                 justify="space-between"
                 mt="lg"
               >
-                <Button
-                  variant="light"
-                  onClick={addAccount}
-                  disabled={isLoading}
-                >
+                <Button variant="light" onClick={addAccount}>
                   + Add Account
                 </Button>
                 <Button
-                  disabled={!form.isValid() || !form.isDirty() || isLoading}
-                  loading={isLoading}
+                  disabled={!form.isValid() || !form.isDirty()}
                   type="submit"
                 >
                   Save Changes

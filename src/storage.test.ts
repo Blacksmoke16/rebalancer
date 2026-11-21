@@ -3,12 +3,10 @@ import {
   savePortfolioData,
   loadPortfolioData,
   clearPortfolioData,
-  getDefaultPortfolioData,
   exportPortfolioData,
   importPortfolioData,
 } from "./storage";
 import { createMockPortfolioData } from "./test/utils";
-import { createDollarAmount } from "./types/branded";
 
 // Mock file download and URL creation
 const mockCreateObjectURL = vi.fn();
@@ -189,63 +187,6 @@ describe("Storage Utilities", () => {
       expect(console.error).toHaveBeenCalledWith(
         "Failed to clear portfolio data",
       );
-    });
-  });
-
-  describe("getDefaultPortfolioData", () => {
-    it("should return default portfolio data structure", () => {
-      const result = getDefaultPortfolioData();
-
-      expect(result).toMatchObject({
-        accounts: expect.arrayContaining([
-          expect.objectContaining({
-            name: expect.any(String),
-            key: expect.any(String),
-          }),
-        ]),
-        portfolio: expect.arrayContaining([
-          expect.objectContaining({
-            name: expect.any(String),
-            allocation: expect.any(Number),
-            funds: expect.any(Array),
-            key: expect.any(String),
-          }),
-        ]),
-        toInvest: createDollarAmount(0),
-        version: expect.any(String),
-        lastSaved: expect.any(String),
-      });
-    });
-
-    it("should include default accounts", () => {
-      const result = getDefaultPortfolioData();
-
-      expect(result.accounts).toHaveLength(3);
-      expect(result.accounts.map((a) => a.name)).toEqual([
-        "401k",
-        "Roth IRA",
-        "Taxable Brokerage",
-      ]);
-    });
-
-    it("should include default asset classes", () => {
-      const result = getDefaultPortfolioData();
-
-      expect(result.portfolio).toHaveLength(3);
-      const assetClassNames = result.portfolio.map((p) => p.name);
-      expect(assetClassNames).toContain("US Total Stock Market");
-      expect(assetClassNames).toContain("International Total Stock Market");
-      expect(assetClassNames).toContain("US Total Bond Market");
-    });
-
-    it("should have allocations that sum to 100%", () => {
-      const result = getDefaultPortfolioData();
-
-      const totalAllocation = result.portfolio.reduce(
-        (sum, p) => sum + p.allocation,
-        0,
-      );
-      expect(totalAllocation).toBe(100);
     });
   });
 

@@ -1,7 +1,6 @@
 import { STORAGE } from "./constants";
 import { Account, AccountBalances, AssetClass, PortfolioData } from "./types";
-import { AccountId, createDollarAmount, DollarAmount } from "./types/branded";
-import { defaultAccounts, defaultAssetClasses } from "./utils";
+import { AccountId, DollarAmount } from "./types/branded";
 
 export function savePortfolioData(
   accounts: Account[],
@@ -52,17 +51,6 @@ export function loadPortfolioData(): PortfolioData | null {
     console.error("Failed to load portfolio data from localStorage");
     return null;
   }
-}
-
-export function getDefaultPortfolioData(): PortfolioData {
-  const accounts = defaultAccounts();
-  return {
-    accounts,
-    portfolio: defaultAssetClasses(accounts),
-    toInvest: createDollarAmount(0),
-    version: STORAGE.VERSION,
-    lastSaved: new Date().toISOString(),
-  };
 }
 
 // Holdings are keyed by account id. Data saved by earlier versions keyed them

@@ -1,6 +1,6 @@
 import { formRootRule, isNotEmpty, useForm } from "@mantine/form";
 import { randomId } from "@mantine/hooks";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { Account } from "../types";
 import { AccountId } from "../types/branded";
 import { sanitizeName } from "../utils/validation";
@@ -14,8 +14,6 @@ export function useAccountForm({
   accounts,
   onAccountsChange,
 }: UseAccountFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
-
   const form = useForm({
     mode: "controlled",
     initialValues: { accounts },
@@ -43,14 +41,9 @@ export function useAccountForm({
 
   const handleSubmit = useCallback(
     (values: { accounts: Account[] }) => {
-      setIsLoading(true);
-      try {
-        onAccountsChange(values.accounts);
-        form.setInitialValues({ accounts: values.accounts });
-        form.reset();
-      } finally {
-        setIsLoading(false);
-      }
+      onAccountsChange(values.accounts);
+      form.setInitialValues({ accounts: values.accounts });
+      form.reset();
     },
     [onAccountsChange, form],
   );
@@ -83,6 +76,5 @@ export function useAccountForm({
     addAccount,
     removeAccount,
     reorderAccounts,
-    isLoading,
   };
 }
