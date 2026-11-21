@@ -1,5 +1,4 @@
 import { ReactNode, useMemo } from "react";
-import { ErrorBoundary } from "../components/ErrorBoundary";
 import { usePortfolioCalculations } from "../hooks/usePortfolioCalculations";
 import { usePortfolioData } from "../hooks/usePortfolioData";
 import { PortfolioContext, PortfolioContextValue } from "./PortfolioContext";
@@ -76,9 +75,5 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
     ],
   );
 
-  return (
-    <ErrorBoundary>
-      <PortfolioContext value={contextValue}>{children}</PortfolioContext>
-    </ErrorBoundary>
-  );
+  return <PortfolioContext value={contextValue}>{children}</PortfolioContext>;
 }

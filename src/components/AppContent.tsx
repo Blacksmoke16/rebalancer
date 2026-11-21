@@ -10,7 +10,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useLocalStorage } from "@mantine/hooks";
 import {
   IconChartPie,
   IconSettings,
@@ -18,49 +18,36 @@ import {
   IconHome,
   IconBrandGithub,
 } from "@tabler/icons-react";
-import { lazy, Suspense } from "react";
+import { AccountsSettings } from "./AccountsSettings";
+import { AssetClassSettings } from "./AssetClassSettings";
+import { DataManagement } from "./DataManagement";
+import { Homepage } from "./Homepage";
 import { PortfolioInputTable } from "./PortfolioInputTable";
 import { RebalancingAnalysisTable } from "./RebalancingAnalysisTable";
-import { SettingsErrorBoundary } from "./SettingsErrorBoundary";
-import { SettingsLoadingSkeleton } from "./ui/LoadingSkeleton";
 import {
   PlanningModeToggle,
   PlanningModeAlert,
 } from "./ui/PlanningModeControls";
 import { PortfolioSummaryCards } from "./ui/PortfolioSummaryCards";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
-import { useTabPersistence } from "../hooks/useTabPersistence";
-
-// Lazy load settings components for better initial load performance
-const AccountsSettings = lazy(() =>
-  import("./AccountsSettings").then((m) => ({ default: m.AccountsSettings })),
-);
-const AssetClassSettings = lazy(() =>
-  import("./AssetClassSettings").then((m) => ({
-    default: m.AssetClassSettings,
-  })),
-);
-const DataManagement = lazy(() =>
-  import("./DataManagement").then((m) => ({ default: m.DataManagement })),
-);
-const Homepage = lazy(() =>
-  import("./Homepage").then((m) => ({ default: m.Homepage })),
-);
 
 export function AppContent() {
   const { accounts, portfolio, handleDataImport, accountList, portfolioList } =
     usePortfolioContext();
 
-  const [activeTab, handleTabChange] = useTabPersistence("home");
+  // Read during the first render so the saved tab shows without a flash of
+  // the home tab, and kept per window rather than synced across windows.
+  const [activeTab, handleTabChange] = useLocalStorage({
+    key: "rebalancer-active-tab",
+    defaultValue: "home",
+    getInitialValueInEffect: false,
+    sync: false,
+  });
   const [opened, { toggle }] = useDisclosure();
 
   const renderContent = () => {
     if (activeTab === "home") {
-      return (
-        <Suspense fallback={<SettingsLoadingSkeleton />}>
-          <Homepage />
-        </Suspense>
-      );
+      return <Homepage />;
     }
 
     if (activeTab === "portfolio") {
@@ -83,19 +70,15 @@ export function AppContent() {
       return (
         <Stack gap="xl">
           <Title order={2}>Configuration</Title>
-          <SettingsErrorBoundary>
-            <Suspense fallback={<SettingsLoadingSkeleton />}>
-              <AccountsSettings
-                accounts={accounts}
-                onAccountsChange={accountList.setState}
-              />
-              <AssetClassSettings
-                portfolio={portfolio}
-                onPortfolioChange={portfolioList.setState}
-              />
-              <DataManagement onDataImported={handleDataImport} />
-            </Suspense>
-          </SettingsErrorBoundary>
+          <AccountsSettings
+            accounts={accounts}
+            onAccountsChange={accountList.setState}
+          />
+          <AssetClassSettings
+            portfolio={portfolio}
+            onPortfolioChange={portfolioList.setState}
+          />
+          <DataManagement onDataImported={handleDataImport} />
         </Stack>
       );
     }
