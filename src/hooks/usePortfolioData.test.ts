@@ -1,29 +1,13 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { act, renderHook, waitFor } from "../test/utils";
-import { analyzePortfolio, withPendingChanges } from "../portfolio";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { STORAGE } from "../constants";
+import { act, createMockPortfolioData, renderHook } from "../test/utils";
 import { usePortfolioData } from "./usePortfolioData";
 
-// Composes the data hook with the portfolio analysis the way PortfolioProvider
-// does, exposing both the mutators and the derived totals.
-function usePortfolio() {
-  const data = usePortfolioData();
-  const analysis = analyzePortfolio(
-    withPendingChanges(data.portfolio, data.pendingChanges),
-    data.toInvest,
-  );
-  return { ...data, analysis };
+function renderPortfolio() {
+  return renderHook(() => usePortfolioData()).result;
 }
 
-async function renderPortfolio() {
-  const { result } = renderHook(() => usePortfolio());
-  // Wait for the default data to load.
-  await waitFor(() => {
-    expect(result.current.accounts.length).toBeGreaterThan(0);
-  });
-  return result;
-}
-
-type Portfolio = Awaited<ReturnType<typeof renderPortfolio>>;
+type Portfolio = ReturnType<typeof renderPortfolio>;
 
 // Enters planning mode with a planned sale of the first fund's whole balance in
 // the first account.
@@ -50,8 +34,8 @@ describe("usePortfolioData", () => {
     localStorage.clear();
   });
 
-  it("preserves an account's holdings when it is renamed", async () => {
-    const result = await renderPortfolio();
+  it("preserves an account's holdings when it is renamed", () => {
+    const result = renderPortfolio();
 
     const account = result.current.accounts[0];
     const holdingsBefore = result.current.analysis.accountTotals[account.key];
@@ -72,8 +56,8 @@ describe("usePortfolioData", () => {
     );
   });
 
-  it("drops a deleted account's balances so totals match the remaining accounts", async () => {
-    const result = await renderPortfolio();
+  it("drops a deleted account's balances so totals match the remaining accounts", () => {
+    const result = renderPortfolio();
     const [deleted, ...remaining] = result.current.accounts;
 
     act(() => {
@@ -87,8 +71,8 @@ describe("usePortfolioData", () => {
     );
   });
 
-  it("ends planning mode when accounts are saved", async () => {
-    const result = await renderPortfolio();
+  it("ends planning mode when accounts are saved", () => {
+    const result = renderPortfolio();
     planSaleInFirstAccount(result);
 
     // Deleting the account the planned sale was in.
@@ -99,8 +83,8 @@ describe("usePortfolioData", () => {
     expectPlanningEnded(result);
   });
 
-  it("ends planning mode when the portfolio is saved", async () => {
-    const result = await renderPortfolio();
+  it("ends planning mode when the portfolio is saved", () => {
+    const result = renderPortfolio();
     planSaleInFirstAccount(result);
 
     act(() => {
@@ -110,8 +94,8 @@ describe("usePortfolioData", () => {
     expectPlanningEnded(result);
   });
 
-  it("ends planning mode when data is imported", async () => {
-    const result = await renderPortfolio();
+  it("ends planning mode when data is imported", () => {
+    const result = renderPortfolio();
     planSaleInFirstAccount(result);
 
     // Importing the same accounts and funds with smaller balances.
@@ -129,8 +113,8 @@ describe("usePortfolioData", () => {
     expectPlanningEnded(result);
   });
 
-  it("ends planning mode when reset to defaults", async () => {
-    const result = await renderPortfolio();
+  it("ends planning mode when reset to defaults", () => {
+    const result = renderPortfolio();
     planSaleInFirstAccount(result);
 
     act(() => {
@@ -140,8 +124,8 @@ describe("usePortfolioData", () => {
     expectPlanningEnded(result);
   });
 
-  it("updates only the targeted fund when asset classes share a name and ticker", async () => {
-    const result = await renderPortfolio();
+  it("updates only the targeted fund when asset classes share a name and ticker", () => {
+    const result = renderPortfolio();
 
     // Give the second asset class the same name and ticker as the first.
     const [first, second, ...rest] = result.current.portfolio;
@@ -169,8 +153,8 @@ describe("usePortfolioData", () => {
     );
   });
 
-  it("applies a planned change to an asset class whose name contains |", async () => {
-    const result = await renderPortfolio();
+  it("applies a planned change to an asset class whose name contains |", () => {
+    const result = renderPortfolio();
 
     const [first, ...rest] = result.current.portfolio;
     act(() => {
@@ -199,8 +183,8 @@ describe("usePortfolioData", () => {
     expectPlanningEnded(result);
   });
 
-  it("sums planned changes across funds and accounts", async () => {
-    const result = await renderPortfolio();
+  it("sums planned changes across funds and accounts", () => {
+    const result = renderPortfolio();
     const [first, second] = result.current.portfolio;
     const [account1, account2] = result.current.accounts.map((a) => a.key);
 
@@ -214,5 +198,46 @@ describe("usePortfolioData", () => {
     });
 
     expect(result.current.pendingBalance).toBe(110);
+  });
+
+  it("uses saved data from the first render", () => {
+    const saved = createMockPortfolioData();
+    vi.mocked(localStorage.getItem).mockReturnValueOnce(JSON.stringify(saved));
+    const accountNamesPerRender: string[][] = [];
+
+    renderHook(() => {
+      const data = usePortfolioData();
+      accountNamesPerRender.push(data.accounts.map((a) => a.name));
+      return data;
+    });
+
+    expect(accountNamesPerRender[0]).toEqual(saved.accounts.map((a) => a.name));
+  });
+
+  it("saves changes once they stop for the auto-save delay", () => {
+    vi.useFakeTimers();
+    try {
+      const result = renderPortfolio();
+      const fund = result.current.portfolio[0].funds[0];
+      const account = result.current.accounts[0].key;
+
+      act(() => {
+        result.current.updateFundBalance(fund.key, account, 4321);
+      });
+      act(() => {
+        vi.advanceTimersByTime(STORAGE.AUTO_SAVE_DELAY_MS - 1);
+      });
+      expect(localStorage.setItem).not.toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(localStorage.setItem).toHaveBeenCalledTimes(1);
+      const [key, json] = vi.mocked(localStorage.setItem).mock.calls[0];
+      expect(key).toBe(STORAGE.KEY);
+      expect(JSON.parse(json).portfolio[0].funds[0].values[account]).toBe(4321);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

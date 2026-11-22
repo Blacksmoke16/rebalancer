@@ -1,6 +1,5 @@
 import { NumberInput, NumberInputProps } from "@mantine/core";
 import type { NumberFormatValues } from "react-number-format";
-import { useCallback } from "react";
 import { FORMATTING, UI } from "../../constants";
 
 interface NumberFieldProps extends Omit<
@@ -23,20 +22,17 @@ export function NumberField({
   leftSection,
   ...props
 }: NumberFieldProps) {
-  const handleValueChange = useCallback(
-    (values: NumberFormatValues): void => {
-      if (!onValueChange) return;
-      let finalValue = values.floatValue ?? 0;
+  function handleValueChange(values: NumberFormatValues): void {
+    if (!onValueChange) return;
+    let finalValue = values.floatValue ?? 0;
 
-      // Apply constraints based on field type
-      if (!allowNegative && finalValue < 0) {
-        finalValue = 0;
-      }
+    // Apply constraints based on field type
+    if (!allowNegative && finalValue < 0) {
+      finalValue = 0;
+    }
 
-      onValueChange(finalValue);
-    },
-    [onValueChange, allowNegative],
-  );
+    onValueChange(finalValue);
+  }
 
   const finalLeftSection = isCurrency
     ? FORMATTING.DOLLAR_PREFIX

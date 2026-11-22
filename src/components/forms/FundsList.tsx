@@ -1,6 +1,5 @@
 import { Group, Stack, TextInput } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
-import { memo } from "react";
 import { AssetClass, Fund } from "../../types";
 import { DeleteButton } from "../ui/FormFields";
 import classes from "../AssetClassSettings.module.css";
@@ -13,12 +12,12 @@ interface FundsListProps {
   onRemoveFund: (assetClassIndex: number, fundIndex: number) => void;
 }
 
-export const FundsList = memo<FundsListProps>(function FundsList({
+export function FundsList({
   funds,
   assetClassIndex,
   form,
   onRemoveFund,
-}) {
+}: FundsListProps) {
   return (
     <>
       {funds.map((fund, fundIdx) => (
@@ -66,4 +65,4 @@ export const FundsList = memo<FundsListProps>(function FundsList({
       ))}
     </>
   );
-});
+}

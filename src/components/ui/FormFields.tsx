@@ -1,6 +1,5 @@
 import { ActionIcon, NumberInput } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
-import { memo } from "react";
 import { FORMATTING } from "../../constants";
 import { Percentage } from "../../types/branded";
 
@@ -14,30 +13,28 @@ interface PercentageInputProps {
   "data-testid"?: string;
 }
 
-export const PercentageInput = memo<PercentageInputProps>(
-  function PercentageInput({
-    value,
-    onChange,
-    label = "Target %",
-    placeholder = "60",
-    error,
-    "data-testid": dataTestId,
-  }) {
-    return (
-      <NumberInput
-        label={label}
-        placeholder={placeholder}
-        min={0}
-        max={100}
-        suffix={FORMATTING.PERCENT_SUFFIX}
-        value={value}
-        onChange={onChange}
-        error={error}
-        data-testid={dataTestId}
-      />
-    );
-  },
-);
+export function PercentageInput({
+  value,
+  onChange,
+  label = "Target %",
+  placeholder = "60",
+  error,
+  "data-testid": dataTestId,
+}: PercentageInputProps) {
+  return (
+    <NumberInput
+      label={label}
+      placeholder={placeholder}
+      min={0}
+      max={100}
+      suffix={FORMATTING.PERCENT_SUFFIX}
+      value={value}
+      onChange={onChange}
+      error={error}
+      data-testid={dataTestId}
+    />
+  );
+}
 
 // Delete button for list items
 interface DeleteButtonProps {
@@ -48,13 +45,13 @@ interface DeleteButtonProps {
   "aria-label"?: string;
 }
 
-export const DeleteButton = memo<DeleteButtonProps>(function DeleteButton({
+export function DeleteButton({
   onClick,
   size = "lg",
   style,
   className,
   "aria-label": ariaLabel = "Delete",
-}) {
+}: DeleteButtonProps) {
   return (
     <ActionIcon
       color="red"
@@ -67,4 +64,4 @@ export const DeleteButton = memo<DeleteButtonProps>(function DeleteButton({
       <IconTrash size={size === "lg" ? 16 : 14} />
     </ActionIcon>
   );
-});
+}

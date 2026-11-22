@@ -13,7 +13,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { Fragment, memo } from "react";
+import { Fragment } from "react";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
 import { assetClassTotal, fundTotal } from "../portfolio";
 import { AccountTotalsRow } from "./ui/AccountTotalsRow";
@@ -23,7 +23,7 @@ import commonClasses from "../styles/common.module.css";
 import type { Account, AssetClass } from "../types";
 
 // Mobile Layout Component
-const MobilePortfolioLayout = memo(function MobilePortfolioLayout({
+function MobilePortfolioLayout({
   portfolio,
   accounts,
 }: {
@@ -88,10 +88,10 @@ const MobilePortfolioLayout = memo(function MobilePortfolioLayout({
       ))}
     </Stack>
   );
-});
+}
 
 // Desktop Layout Component
-const DesktopPortfolioLayout = memo(function DesktopPortfolioLayout({
+function DesktopPortfolioLayout({
   portfolio,
   accounts,
 }: {
@@ -152,9 +152,9 @@ const DesktopPortfolioLayout = memo(function DesktopPortfolioLayout({
       </Paper>
     </ScrollArea>
   );
-});
+}
 
-export const PortfolioInputTable = memo(function PortfolioInputTable() {
+export function PortfolioInputTable() {
   const { accounts, portfolio } = usePortfolioContext();
 
   return (
@@ -163,4 +163,4 @@ export const PortfolioInputTable = memo(function PortfolioInputTable() {
       <DesktopPortfolioLayout portfolio={portfolio} accounts={accounts} />
     </>
   );
-});
+}

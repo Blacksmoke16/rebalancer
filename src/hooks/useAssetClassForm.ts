@@ -1,6 +1,6 @@
 import { formRootRule, isInRange, isNotEmpty, useForm } from "@mantine/form";
 import { randomId } from "@mantine/hooks";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { AssetClass } from "../types";
 import { AssetClassId, FundTicker, Percentage } from "../types/branded";
 import {
@@ -59,36 +59,30 @@ export function useAssetClassForm({
 
   // The form doesn't edit balances, so each existing fund keeps its current
   // balances rather than the form's copy; funds added in the form keep theirs.
-  const preserveFundValues = useCallback(
-    (newPortfolio: AssetClass[]): AssetClass[] => {
-      const valuesByFundKey = new Map(
-        portfolio
-          .flatMap((assetClass) => assetClass.funds)
-          .map((fund) => [fund.key, fund.values]),
-      );
+  function preserveFundValues(newPortfolio: AssetClass[]): AssetClass[] {
+    const valuesByFundKey = new Map(
+      portfolio
+        .flatMap((assetClass) => assetClass.funds)
+        .map((fund) => [fund.key, fund.values]),
+    );
 
-      return newPortfolio.map((assetClass) => ({
-        ...assetClass,
-        funds: assetClass.funds.map((fund) => ({
-          ...fund,
-          values: valuesByFundKey.get(fund.key) ?? fund.values,
-        })),
-      }));
-    },
-    [portfolio],
-  );
+    return newPortfolio.map((assetClass) => ({
+      ...assetClass,
+      funds: assetClass.funds.map((fund) => ({
+        ...fund,
+        values: valuesByFundKey.get(fund.key) ?? fund.values,
+      })),
+    }));
+  }
 
-  const handleSubmit = useCallback(
-    (values: { portfolio: AssetClass[] }) => {
-      const portfolioWithPreservedValues = preserveFundValues(values.portfolio);
-      onPortfolioChange(portfolioWithPreservedValues);
-      form.setInitialValues({ portfolio: portfolioWithPreservedValues });
-      form.reset();
-    },
-    [onPortfolioChange, preserveFundValues, form],
-  );
+  function handleSubmit(values: { portfolio: AssetClass[] }) {
+    const portfolioWithPreservedValues = preserveFundValues(values.portfolio);
+    onPortfolioChange(portfolioWithPreservedValues);
+    form.setInitialValues({ portfolio: portfolioWithPreservedValues });
+    form.reset();
+  }
 
-  const addAssetClass = useCallback(() => {
+  function addAssetClass() {
     form.insertListItem("portfolio", {
       name: "",
       allocation: 0 as Percentage,
@@ -96,39 +90,30 @@ export function useAssetClassForm({
       key: randomId() as AssetClassId,
     });
     form.clearFieldError("portfolio");
-  }, [form]);
+  }
 
-  const removeAssetClass = useCallback(
-    (index: number) => {
-      form.removeListItem("portfolio", index);
-    },
-    [form],
-  );
+  function removeAssetClass(index: number) {
+    form.removeListItem("portfolio", index);
+  }
 
-  const addFund = useCallback(
-    (assetClassIndex: number) => {
-      form.insertListItem(`portfolio.${assetClassIndex}.funds`, {
-        ticker: "" as FundTicker,
-        values: {},
-        key: randomId(),
-      });
-    },
-    [form],
-  );
+  function addFund(assetClassIndex: number) {
+    form.insertListItem(`portfolio.${assetClassIndex}.funds`, {
+      ticker: "" as FundTicker,
+      values: {},
+      key: randomId(),
+    });
+  }
 
-  const removeFund = useCallback(
-    (assetClassIndex: number, fundIndex: number) => {
-      form.removeListItem(`portfolio.${assetClassIndex}.funds`, fundIndex);
-    },
-    [form],
-  );
+  function removeFund(assetClassIndex: number, fundIndex: number) {
+    form.removeListItem(`portfolio.${assetClassIndex}.funds`, fundIndex);
+  }
 
-  const getTotalAllocation = useCallback(() => {
+  function getTotalAllocation() {
     return form.values.portfolio.reduce(
       (sum, ac) => sum + (ac.allocation || 0),
       0,
     );
-  }, [form.values.portfolio]);
+  }
 
   return {
     form,
