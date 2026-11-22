@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { STORAGE } from "../constants";
-import { fundDollarValues } from "../portfolio";
+import { fundDollarValues, fundTotal } from "../portfolio";
 import { act, createMockPortfolioData, renderHook } from "../test/utils";
 import { usePortfolioData } from "./usePortfolioData";
 
@@ -207,26 +207,122 @@ describe("usePortfolioData", () => {
     expect(result.current.pendingBalance).toBe(110);
   });
 
-  it("doesn't write a dollar balance into a share fund", () => {
-    const saved = createMockPortfolioData();
-    const account = saved.accounts[0].key;
-    const shareFund = {
-      ticker: "VTI",
-      key: "vti-shares",
-      unit: "shares",
-      shares: { [account]: 10 },
-      price: 250,
-      priceAsOf: null,
-    };
-    saved.portfolio[0].funds = [shareFund as any];
-    vi.mocked(localStorage.getItem).mockReturnValueOnce(JSON.stringify(saved));
-    const result = renderPortfolio();
+  describe("share funds", () => {
+    const NOW = new Date("2026-11-22T15:00:00.000Z");
 
-    act(() => {
-      result.current.updateFundBalance("vti-shares", account, 999);
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(NOW);
     });
 
-    expect(result.current.portfolio[0].funds[0]).toEqual(shareFund);
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    // Converts the first fund to shares at the given price.
+    function renderWithFirstFundInShares(price: number) {
+      const result = renderPortfolio();
+      const fund = result.current.portfolio[0].funds[0];
+      act(() => {
+        result.current.convertFundToShares(fund.key, price);
+      });
+      return { result, fundKey: fund.key };
+    }
+
+    function firstFund(result: Portfolio) {
+      return result.current.portfolio[0].funds[0];
+    }
+
+    it("converts a fund to shares at a price, keeping its value", () => {
+      const result = renderPortfolio();
+      const [k401, roth] = result.current.accounts.map((a) => a.key);
+      const fund = firstFund(result);
+      const totalBefore = result.current.analysis.total;
+      const dollarsBefore = fundDollarValues(fund);
+
+      act(() => {
+        result.current.convertFundToShares(fund.key, 250);
+      });
+
+      expect(firstFund(result)).toMatchObject({
+        unit: "shares",
+        shares: {
+          [k401]: (dollarsBefore[k401] ?? 0) / 250,
+          [roth]: (dollarsBefore[roth] ?? 0) / 250,
+        },
+        price: 250,
+        priceAsOf: NOW.toISOString(),
+      });
+      expect(result.current.analysis.total).toBeCloseTo(totalBefore, 6);
+    });
+
+    it("converts a share fund back to whole dollars", () => {
+      const result = renderPortfolio();
+      const fund = firstFund(result);
+
+      act(() => {
+        result.current.convertFundToShares(fund.key, 297.15);
+      });
+      act(() => {
+        result.current.convertFundToDollars(fund.key);
+      });
+
+      expect(firstFund(result)).toEqual(fund);
+    });
+
+    it("sets a share count, keeping fractional shares", () => {
+      const { result, fundKey } = renderWithFirstFundInShares(250);
+      const account = result.current.accounts[0].key;
+
+      act(() => {
+        result.current.updateFundBalance(fundKey, account, 10.1234567);
+      });
+
+      expect(firstFund(result)).toHaveProperty(["shares", account], 10.123457);
+      expect(fundDollarValues(firstFund(result))[account]).toBeCloseTo(
+        10.123457 * 250,
+      );
+    });
+
+    it("sets a price and records when it was set", () => {
+      const { result, fundKey } = renderWithFirstFundInShares(250);
+      const later = new Date("2026-11-23T15:00:00.000Z");
+      vi.setSystemTime(later);
+
+      act(() => {
+        result.current.updateFundPrice(fundKey, 262.5);
+      });
+
+      expect(firstFund(result)).toMatchObject({
+        price: 262.5,
+        priceAsOf: later.toISOString(),
+      });
+    });
+
+    it("keeps a price's date when the same price is set again", () => {
+      const { result, fundKey } = renderWithFirstFundInShares(250);
+      vi.setSystemTime(new Date("2026-11-23T15:00:00.000Z"));
+
+      act(() => {
+        result.current.updateFundPrice(fundKey, 250);
+      });
+
+      expect(firstFund(result)).toHaveProperty("priceAsOf", NOW.toISOString());
+    });
+
+    it("leaves a fund unpriced when its price is cleared", () => {
+      const { result, fundKey } = renderWithFirstFundInShares(250);
+
+      act(() => {
+        result.current.updateFundPrice(fundKey, 0);
+      });
+
+      expect(firstFund(result)).toMatchObject({
+        price: null,
+        priceAsOf: null,
+      });
+      expect(fundTotal(firstFund(result))).toBe(0);
+    });
   });
 
   it("uses saved data from the first render", () => {

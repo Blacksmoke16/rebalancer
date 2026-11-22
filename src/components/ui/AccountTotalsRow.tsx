@@ -17,7 +17,7 @@ export function AccountTotalsRow({ accounts }: AccountTotalsRowProps) {
         <TableTd />
       </TableTr>
       <TableTr>
-        <TableTd colSpan={2}>Account Totals</TableTd>
+        <TableTd colSpan={3}>Account Totals</TableTd>
         {accounts.map((account) => (
           <TableTd key={`${account.key}-total`}>
             <Center>

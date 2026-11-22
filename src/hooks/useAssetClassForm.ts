@@ -1,13 +1,19 @@
 import { formRootRule, isInRange, isNotEmpty, useForm } from "@mantine/form";
 import { randomId } from "@mantine/hooks";
 import { useEffect } from "react";
-import { AssetClass } from "../types";
+import { AssetClass, Fund } from "../types";
 import { AssetClassId } from "../types/branded";
 import {
   sanitizeName,
   validateAllocationSum,
   validateTicker,
 } from "../utils/validation";
+
+// The fund whose field is at `path`, e.g. "portfolio.1.funds.0.ticker".
+function fundAtPath(values: { portfolio: AssetClass[] }, path: string): Fund {
+  const [, assetClassIndex, , fundIndex] = path.split(".");
+  return values.portfolio[Number(assetClassIndex)].funds[Number(fundIndex)];
+}
 
 interface UseAssetClassFormProps {
   portfolio: AssetClass[];
@@ -35,7 +41,8 @@ export function useAssetClassForm({
         ),
         funds: {
           [formRootRule]: isNotEmpty("Must have at least one fund"),
-          ticker: validateTicker,
+          ticker: (value: string, values, path) =>
+            validateTicker(value, fundAtPath(values, path).unit),
         },
       },
     },
