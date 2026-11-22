@@ -10,8 +10,10 @@ A privacy-focused portfolio rebalancing tool that helps you optimize your invest
 - **Portfolio Analysis**: View current vs target allocation across all your asset classes and accounts
 - **Rebalancing Recommendations**: Get precise dollar amounts for where to invest new money
 - **Planning Mode**: Plan complex transactions before applying them, with real-time balance and analysis
+- **Shares or Dollars**: Track each fund as a dollar balance, or as a number of shares valued at its price
+- **Price Refresh**: Update share prices from [financeapi.net](https://financeapi.net) with your own free API key, or type them in yourself
 - **Responsive Design**: Works perfectly on desktop and mobile devices
-- **Privacy First**: All data is stored locally in your browser - nothing is sent to servers
+- **Privacy First**: All data is stored locally in your browser. The only thing sent anywhere is your share funds' tickers, to financeapi.net, when you refresh prices
 - **Real-time Calculations**: Instant updates as you modify your portfolio or investment amounts
 
 ## Development

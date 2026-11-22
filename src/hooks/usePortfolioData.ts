@@ -6,7 +6,9 @@ import {
   toShareFund,
   withoutOrphanedBalances,
   withPendingChanges,
+  withPrices,
 } from "../portfolio";
+import type { Quote } from "../prices";
 import { loadPortfolioData, savePortfolioData } from "../storage";
 import {
   Account,
@@ -25,7 +27,7 @@ import { defaultAccounts, defaultAssetClasses } from "../utils";
 
 type PortfolioState = Pick<
   PortfolioData,
-  "accounts" | "portfolio" | "toInvest"
+  "accounts" | "portfolio" | "toInvest" | "pricesUpdatedAt"
 >;
 
 function defaultPortfolioState(): PortfolioState {
@@ -34,6 +36,7 @@ function defaultPortfolioState(): PortfolioState {
     accounts,
     portfolio: defaultAssetClasses(accounts),
     toInvest: createDollarAmount(1500),
+    pricesUpdatedAt: null,
   };
 }
 
@@ -41,15 +44,15 @@ function defaultPortfolioState(): PortfolioState {
 function initialPortfolioState(): PortfolioState {
   const saved = loadPortfolioData();
   if (!saved) return defaultPortfolioState();
-  const { accounts, portfolio, toInvest } = saved;
-  return { accounts, portfolio, toInvest };
+  const { accounts, portfolio, toInvest, pricesUpdatedAt } = saved;
+  return { accounts, portfolio, toInvest, pricesUpdatedAt };
 }
 
 export function usePortfolioData() {
   // Loaded during the first render so saved data shows without a flash of the
   // defaults.
   const [portfolioState, setPortfolioState] = useState(initialPortfolioState);
-  const { accounts, portfolio, toInvest } = portfolioState;
+  const { accounts, portfolio, toInvest, pricesUpdatedAt } = portfolioState;
 
   // Planning mode state
   const [planningMode, setPlanningMode] = useState(false);
@@ -71,13 +74,13 @@ export function usePortfolioData() {
   // Save shortly after changes stop to avoid excessive localStorage writes
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      savePortfolioData(accounts, portfolio, toInvest);
+      savePortfolioData(accounts, portfolio, toInvest, pricesUpdatedAt);
     }, STORAGE.AUTO_SAVE_DELAY_MS);
 
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [accounts, portfolio, toInvest]);
+  }, [accounts, portfolio, toInvest, pricesUpdatedAt]);
 
   // Pending changes are planned against the current accounts, funds, and
   // balances, so every action that replaces those also ends planning mode.
@@ -152,6 +155,17 @@ export function usePortfolioData() {
     );
   }
 
+  // Sets the price of each share fund a quote is for, and records when prices
+  // were refreshed unless nothing was priced.
+  function applyQuotes(quotes: Map<string, Quote>): void {
+    const now = new Date().toISOString();
+    setPortfolioState((prev) => ({
+      ...prev,
+      portfolio: withPrices(prev.portfolio, quotes),
+      pricesUpdatedAt: quotes.size > 0 ? now : prev.pricesUpdatedAt,
+    }));
+  }
+
   // Balances held in accounts that are no longer in the list are dropped.
   function updateAccounts(newAccounts: Account[]): void {
     setPortfolioState((prev) => ({
@@ -171,15 +185,22 @@ export function usePortfolioData() {
     newAccounts: Account[],
     newPortfolio: AssetClass[],
     newToInvest: DollarAmount,
+    newPricesUpdatedAt: string | null,
   ): void {
     setPortfolioState({
       accounts: newAccounts,
       portfolio: newPortfolio,
       toInvest: newToInvest,
+      pricesUpdatedAt: newPricesUpdatedAt,
     });
     exitPlanningMode();
     // Immediately save the imported data to localStorage
-    savePortfolioData(newAccounts, newPortfolio, newToInvest);
+    savePortfolioData(
+      newAccounts,
+      newPortfolio,
+      newToInvest,
+      newPricesUpdatedAt,
+    );
   }
 
   function resetToDefaults(): void {
@@ -188,7 +209,12 @@ export function usePortfolioData() {
     exitPlanningMode();
 
     // Save the reset state immediately
-    savePortfolioData(defaults.accounts, defaults.portfolio, defaults.toInvest);
+    savePortfolioData(
+      defaults.accounts,
+      defaults.portfolio,
+      defaults.toInvest,
+      defaults.pricesUpdatedAt,
+    );
   }
 
   function updatePendingChange(
@@ -222,6 +248,7 @@ export function usePortfolioData() {
     accounts,
     portfolio,
     toInvest,
+    pricesUpdatedAt,
     planningMode,
     pendingChanges,
     pendingBalance,
@@ -232,6 +259,7 @@ export function usePortfolioData() {
     updateFundPrice,
     convertFundToShares,
     convertFundToDollars,
+    applyQuotes,
     updatePendingChange,
     updateAccounts,
     updatePortfolio,

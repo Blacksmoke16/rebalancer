@@ -1,6 +1,7 @@
 import { Anchor, Card, List, Stack, Text, Title } from "@mantine/core";
 import {
   IconChartPie,
+  IconCoins,
   IconSettings2,
   IconFileImport,
   IconCalculator,
@@ -74,6 +75,23 @@ export function Homepage() {
         <Card withBorder p="lg">
           <Stack gap="sm">
             <Title order={3} size="h4">
+              <IconCoins
+                size={20}
+                style={{ verticalAlign: "middle", marginRight: "8px" }}
+              />
+              Shares and Prices
+            </Title>
+            <Text>
+              Track a fund as a dollar balance, or as a number of shares valued
+              at its price. Type prices in yourself, or refresh them from
+              financeapi.net with your own free API key.
+            </Text>
+          </Stack>
+        </Card>
+
+        <Card withBorder p="lg">
+          <Stack gap="sm">
+            <Title order={3} size="h4">
               <IconCalculator
                 size={20}
                 style={{ verticalAlign: "middle", marginRight: "8px" }}
@@ -132,7 +150,8 @@ export function Homepage() {
             <Text>
               Export your portfolio data for backup or import previously saved
               configurations. All data is stored locally in your browser for
-              privacy.
+              privacy; refreshing prices sends only your share funds' tickers to
+              financeapi.net.
             </Text>
           </Stack>
         </Card>

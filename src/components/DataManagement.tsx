@@ -26,18 +26,19 @@ interface DataManagementProps {
     accounts: Account[],
     portfolio: AssetClass[],
     toInvest: DollarAmount,
+    pricesUpdatedAt: string | null,
   ) => void;
 }
 
 export function DataManagement({ onDataImported }: DataManagementProps) {
-  const { accounts, portfolio, toInvest, resetToDefaults } =
+  const { accounts, portfolio, toInvest, pricesUpdatedAt, resetToDefaults } =
     usePortfolioContext();
   const [isImporting, setIsImporting] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
 
   function handleExport() {
     try {
-      exportPortfolioData(accounts, portfolio, toInvest);
+      exportPortfolioData(accounts, portfolio, toInvest, pricesUpdatedAt);
       notifications.show({
         title: "Export Successful",
         message: "Your portfolio data has been downloaded",
@@ -58,7 +59,12 @@ export function DataManagement({ onDataImported }: DataManagementProps) {
     setIsImporting(true);
     try {
       const data = await importPortfolioData(importFile);
-      onDataImported(data.accounts, data.portfolio, data.toInvest);
+      onDataImported(
+        data.accounts,
+        data.portfolio,
+        data.toInvest,
+        data.pricesUpdatedAt,
+      );
 
       notifications.show({
         title: "Import Successful",

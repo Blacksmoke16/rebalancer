@@ -54,6 +54,8 @@ export interface PortfolioData {
   accounts: Account[];
   portfolio: AssetClass[];
   toInvest: DollarAmount;
+  // ISO timestamp of the last price refresh that priced at least one fund.
+  pricesUpdatedAt: string | null;
   version: string;
   lastSaved: string;
 }

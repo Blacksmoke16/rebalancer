@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { STORAGE } from "../constants";
 import { fundDollarValues, fundTotal } from "../portfolio";
+import type { Quote } from "../prices";
 import { act, createMockPortfolioData, renderHook } from "../test/utils";
 import { usePortfolioData } from "./usePortfolioData";
 
@@ -112,10 +113,12 @@ describe("usePortfolioData", () => {
           })),
         })),
         result.current.toInvest,
+        "2026-11-22T14:14:00.000Z",
       );
     });
 
     expectPlanningEnded(result);
+    expect(result.current.pricesUpdatedAt).toBe("2026-11-22T14:14:00.000Z");
   });
 
   it("ends planning mode when reset to defaults", () => {
@@ -322,6 +325,71 @@ describe("usePortfolioData", () => {
         priceAsOf: null,
       });
       expect(fundTotal(firstFund(result))).toBe(0);
+    });
+
+    describe("refreshing prices", () => {
+      const vtiQuote: Quote = {
+        symbol: "VTI",
+        price: 340.02,
+        asOf: "2026-11-20T21:00:02.000Z",
+        currency: "USD",
+      };
+
+      it("sets quoted prices and records when prices were refreshed", () => {
+        const { result } = renderWithFirstFundInShares(250);
+        expect(result.current.pricesUpdatedAt).toBe(null);
+
+        act(() => {
+          result.current.applyQuotes(new Map([["VTI", vtiQuote]]));
+        });
+
+        expect(firstFund(result)).toMatchObject({
+          price: 340.02,
+          priceAsOf: "2026-11-20T21:00:02.000Z",
+        });
+        expect(result.current.pricesUpdatedAt).toBe(NOW.toISOString());
+      });
+
+      it("doesn't record a refresh that priced nothing", () => {
+        const { result } = renderWithFirstFundInShares(250);
+
+        act(() => {
+          result.current.applyQuotes(new Map());
+        });
+
+        expect(result.current.pricesUpdatedAt).toBe(null);
+      });
+
+      it("saves when prices were refreshed", () => {
+        const { result } = renderWithFirstFundInShares(250);
+
+        act(() => {
+          result.current.applyQuotes(new Map([["VTI", vtiQuote]]));
+        });
+        act(() => {
+          vi.advanceTimersByTime(STORAGE.AUTO_SAVE_DELAY_MS);
+        });
+
+        const saves = vi.mocked(localStorage.setItem).mock.calls;
+        const [, json] = saves[saves.length - 1];
+        expect(JSON.parse(json)).toHaveProperty(
+          "pricesUpdatedAt",
+          NOW.toISOString(),
+        );
+      });
+
+      it("forgets the last refresh when reset to defaults", () => {
+        const { result } = renderWithFirstFundInShares(250);
+        act(() => {
+          result.current.applyQuotes(new Map([["VTI", vtiQuote]]));
+        });
+
+        act(() => {
+          result.current.resetToDefaults();
+        });
+
+        expect(result.current.pricesUpdatedAt).toBe(null);
+      });
     });
   });
 

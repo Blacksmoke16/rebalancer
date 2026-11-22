@@ -8,6 +8,7 @@ import type {
   PendingChanges,
   ShareFund,
 } from "./types";
+import type { Quote } from "./prices";
 import {
   AccountId,
   AssetClassId,
@@ -163,6 +164,32 @@ export function withoutOrphanedBalances(
         ? { ...fund, shares: heldInAccounts(fund.shares) }
         : { ...fund, values: heldInAccounts(fund.values) },
     ),
+  }));
+}
+
+// The symbols to look up prices for: each share fund's ticker, uppercased, once.
+export function shareFundSymbols(portfolio: AssetClass[]): string[] {
+  const symbols = portfolio
+    .flatMap((assetClass) => assetClass.funds)
+    .filter((fund) => fund.unit === "shares")
+    .map((fund) => fund.ticker.toUpperCase());
+  return [...new Set(symbols)];
+}
+
+// Returns a copy of the portfolio with each quote's price set on the share
+// funds whose ticker matches its symbol, ignoring case.
+export function withPrices(
+  portfolio: AssetClass[],
+  quotes: Map<string, Quote>,
+): AssetClass[] {
+  return portfolio.map((assetClass) => ({
+    ...assetClass,
+    funds: assetClass.funds.map((fund) => {
+      const quote =
+        fund.unit === "shares" ? quotes.get(fund.ticker.toUpperCase()) : null;
+      if (!quote) return fund;
+      return { ...fund, price: quote.price, priceAsOf: quote.asOf };
+    }),
   }));
 }
 

@@ -64,6 +64,7 @@ export const createMockPortfolioData = () => ({
     },
   ],
   toInvest: 10000 as any,
+  pricesUpdatedAt: null as string | null,
   version: "1.0.0",
   lastSaved: new Date().toISOString(),
 });

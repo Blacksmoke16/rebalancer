@@ -3,11 +3,14 @@ import {
   analyzePortfolio,
   fundDollarValues,
   fundTotal,
+  shareFundSymbols,
   toDollarFund,
   toShareFund,
   withoutOrphanedBalances,
   withPendingChanges,
+  withPrices,
 } from "./portfolio";
+import type { Quote } from "./prices";
 import {
   AccountId,
   AssetClassId,
@@ -197,6 +200,56 @@ describe("toDollarFund", () => {
     expect(() =>
       toDollarFund(vtiShares({ [ACCOUNT_IDS.k401]: 10 }, null)),
     ).toThrow("VTI has no price to convert its shares with.");
+  });
+});
+
+describe("shareFundSymbols", () => {
+  it("lists each share fund's ticker once, uppercased", () => {
+    const portfolio = withUsFund(vtiShares({ [ACCOUNT_IDS.k401]: 1 }, 250));
+    portfolio[0].funds.push(
+      { ...vtiShares({}, null), ticker: "vti", key: "vti-2" },
+      { ...vtiShares({}, null), ticker: "brk-b", key: "brk-key" },
+    );
+
+    // VXUS and BND are dollar funds.
+    expect(shareFundSymbols(portfolio)).toEqual(["VTI", "BRK-B"]);
+  });
+});
+
+describe("withPrices", () => {
+  const vtiQuote: Quote = {
+    symbol: "VTI",
+    price: 340.02,
+    asOf: "2026-11-20T21:00:02.000Z",
+    currency: "USD",
+  };
+
+  it("sets the price and its date on every share fund with that ticker", () => {
+    const portfolio = withUsFund(vtiShares({ [ACCOUNT_IDS.k401]: 10 }, null));
+    const lowercase = { ...vtiShares({}, 250), ticker: "vti", key: "vti-2" };
+    portfolio[0].funds.push(lowercase);
+
+    const [usStocks] = withPrices(portfolio, new Map([["VTI", vtiQuote]]));
+
+    expect(usStocks.funds).toEqual([
+      {
+        ...vtiShares({ [ACCOUNT_IDS.k401]: 10 }, null),
+        price: 340.02,
+        priceAsOf: "2026-11-20T21:00:02.000Z",
+      },
+      { ...lowercase, price: 340.02, priceAsOf: "2026-11-20T21:00:02.000Z" },
+    ]);
+  });
+
+  it("leaves dollar funds and share funds without a quote unchanged", () => {
+    const bndShares = { ...vtiShares({}, 72), ticker: "BND", key: "bnd-2" };
+    const portfolio = withUsFund(bndShares);
+
+    const priced = withPrices(portfolio, new Map([["VTI", vtiQuote]]));
+
+    expect(priced[0].funds[0]).toBe(bndShares);
+    // INTL holds a dollar fund.
+    expect(priced[1].funds[0]).toBe(mockPortfolio[1].funds[0]);
   });
 });
 

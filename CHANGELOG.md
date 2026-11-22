@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Track a fund's holdings as a number of shares valued at its price, instead of dollars ([#93]) (George Dietrich)
+- Refresh share prices from financeapi.net with your own API key ([#94]) (George Dietrich)
+
+[Unreleased]: https://github.com/blacksmoke16/rebalancer/compare/v0.3.2...HEAD
+[#93]: https://github.com/Blacksmoke16/rebalancer/pull/93
+[#94]: https://github.com/Blacksmoke16/rebalancer/pull/94
+
 ## [0.3.2] - 2026-06-07
 
 ### Fixed
