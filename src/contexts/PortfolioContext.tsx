@@ -1,40 +1,7 @@
 import { createContext, use } from "react";
-import { PortfolioAnalysis } from "../portfolio";
-import { Account, AssetClass, PendingChanges } from "../types";
-import { AccountId, DollarAmount } from "../types/branded";
+import type { usePortfolioData } from "../hooks/usePortfolioData";
 
-export interface PortfolioContextValue {
-  accounts: Account[];
-  portfolio: AssetClass[];
-  toInvest: DollarAmount;
-  planningMode: boolean;
-  pendingChanges: PendingChanges;
-  pendingBalance: number;
-  // Analysis of the portfolio with any pending changes applied.
-  analysis: PortfolioAnalysis;
-  updateFundBalance: (
-    fundKey: string,
-    accountId: AccountId,
-    value: number,
-  ) => void;
-  updatePendingChange: (
-    fundKey: string,
-    accountId: AccountId,
-    changeAmount: number,
-  ) => void;
-  updateAccounts: (newAccounts: Account[]) => void;
-  updatePortfolio: (newPortfolio: AssetClass[]) => void;
-  enterPlanningMode: () => void;
-  exitPlanningMode: () => void;
-  applyPendingChanges: () => void;
-  setToInvest: (value: DollarAmount) => void;
-  resetToDefaults: () => void;
-  handleDataImport: (
-    newAccounts: Account[],
-    newPortfolio: AssetClass[],
-    newToInvest: DollarAmount,
-  ) => void;
-}
+export type PortfolioContextValue = ReturnType<typeof usePortfolioData>;
 
 export const PortfolioContext = createContext<
   PortfolioContextValue | undefined

@@ -1,74 +1,62 @@
-import { useListState } from "@mantine/hooks";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { STORAGE } from "../constants";
-import { withoutOrphanedBalances, withPendingChanges } from "../portfolio";
+import {
+  analyzePortfolio,
+  withoutOrphanedBalances,
+  withPendingChanges,
+} from "../portfolio";
 import { loadPortfolioData, savePortfolioData } from "../storage";
-import { Account, AssetClass, PendingChanges } from "../types";
+import { Account, AssetClass, PendingChanges, PortfolioData } from "../types";
 import { AccountId, createDollarAmount, DollarAmount } from "../types/branded";
 import { defaultAccounts, defaultAssetClasses } from "../utils";
 
-interface UsePortfolioDataReturn {
-  accounts: Account[];
-  portfolio: AssetClass[];
-  toInvest: DollarAmount;
-  planningMode: boolean;
-  pendingChanges: PendingChanges;
-  pendingBalance: number;
-  updateFundBalance: (
-    fundKey: string,
-    accountId: AccountId,
-    value: number,
-  ) => void;
-  updatePendingChange: (
-    fundKey: string,
-    accountId: AccountId,
-    changeAmount: number,
-  ) => void;
-  updateAccounts: (newAccounts: Account[]) => void;
-  updatePortfolio: (newPortfolio: AssetClass[]) => void;
-  enterPlanningMode: () => void;
-  exitPlanningMode: () => void;
-  applyPendingChanges: () => void;
-  handleDataImport: (
-    newAccounts: Account[],
-    newPortfolio: AssetClass[],
-    newToInvest: DollarAmount,
-  ) => void;
-  resetToDefaults: () => void;
-  setToInvest: (value: DollarAmount) => void;
+type PortfolioState = Pick<
+  PortfolioData,
+  "accounts" | "portfolio" | "toInvest"
+>;
+
+function defaultPortfolioState(): PortfolioState {
+  const accounts = defaultAccounts();
+  return {
+    accounts,
+    portfolio: defaultAssetClasses(accounts),
+    toInvest: createDollarAmount(1500),
+  };
 }
 
-export function usePortfolioData(): UsePortfolioDataReturn {
-  // Initialize state with defaults, will be overridden by useEffect if data exists
-  const [accounts, accountList] = useListState<Account>(() =>
-    defaultAccounts(),
-  );
-  const [portfolio, portfolioList] = useListState<AssetClass>(() =>
-    defaultAssetClasses(accounts),
-  );
-  const [toInvest, setToInvest] = useState(() => createDollarAmount(1500));
-  const [isLoaded, setIsLoaded] = useState(false);
+// Saved data if there is any, otherwise the defaults.
+function initialPortfolioState(): PortfolioState {
+  const saved = loadPortfolioData();
+  if (!saved) return defaultPortfolioState();
+  const { accounts, portfolio, toInvest } = saved;
+  return { accounts, portfolio, toInvest };
+}
+
+export function usePortfolioData() {
+  // Loaded during the first render so saved data shows without a flash of the
+  // defaults.
+  const [portfolioState, setPortfolioState] = useState(initialPortfolioState);
+  const { accounts, portfolio, toInvest } = portfolioState;
 
   // Planning mode state
   const [planningMode, setPlanningMode] = useState(false);
   const [pendingChanges, setPendingChanges] = useState<PendingChanges>({});
 
   // Calculate the pending balance (sum of all pending changes)
-  const pendingBalance = useMemo(() => {
-    return Object.values(pendingChanges)
-      .flatMap((changes) => Object.values(changes))
-      .reduce((sum, amt) => sum + amt, 0);
-  }, [pendingChanges]);
+  const pendingBalance = Object.values(pendingChanges)
+    .flatMap((changes) => Object.values(changes))
+    .reduce((sum, amt) => sum + amt, 0);
 
-  // Pending changes are planned against the current accounts, funds, and
-  // balances, so every action that replaces those also ends planning mode.
-  const exitPlanningMode = useCallback((): void => {
-    setPlanningMode(false);
-    setPendingChanges({});
-  }, []);
+  // Analysis of the portfolio with any pending changes applied. Pending changes
+  // only exist in planning mode; they're cleared whenever planning mode starts
+  // or ends.
+  const analysis = analyzePortfolio(
+    withPendingChanges(portfolio, pendingChanges),
+    toInvest,
+  );
 
-  // Debounced save function to avoid excessive localStorage writes
-  const debouncedSave = useCallback(() => {
+  // Save shortly after changes stop to avoid excessive localStorage writes
+  useEffect(() => {
     const timeoutId = setTimeout(() => {
       savePortfolioData(accounts, portfolio, toInvest);
     }, STORAGE.AUTO_SAVE_DELAY_MS);
@@ -78,126 +66,105 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     };
   }, [accounts, portfolio, toInvest]);
 
-  // Load data from localStorage on component mount
-  useEffect(() => {
-    // Use queueMicrotask to avoid synchronous setState warning
-    queueMicrotask(() => {
-      const savedData = loadPortfolioData();
-      if (savedData) {
-        accountList.setState(savedData.accounts);
-        portfolioList.setState(savedData.portfolio);
-        setToInvest(savedData.toInvest);
-      }
-      setIsLoaded(true);
-    });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Pending changes are planned against the current accounts, funds, and
+  // balances, so every action that replaces those also ends planning mode.
+  function exitPlanningMode(): void {
+    setPlanningMode(false);
+    setPendingChanges({});
+  }
 
-  // Auto-save when data changes
-  useEffect(() => {
-    if (isLoaded) {
-      const cleanup = debouncedSave();
-      return cleanup;
-    }
-  }, [accounts, portfolio, toInvest, isLoaded, debouncedSave]);
+  function setToInvest(value: DollarAmount): void {
+    setPortfolioState((prev) => ({ ...prev, toInvest: value }));
+  }
 
-  const updateFundBalance = useCallback(
-    (fundKey: string, accountId: AccountId, value: number): void => {
-      portfolioList.setState((prev) =>
-        prev.map((assetClass) => ({
-          ...assetClass,
-          funds: assetClass.funds.map((fund) => {
-            if (fund.key !== fundKey) return fund;
+  function updateFundBalance(
+    fundKey: string,
+    accountId: AccountId,
+    value: number,
+  ): void {
+    setPortfolioState((prev) => ({
+      ...prev,
+      portfolio: prev.portfolio.map((assetClass) => ({
+        ...assetClass,
+        funds: assetClass.funds.map((fund) => {
+          if (fund.key !== fundKey) return fund;
 
-            return {
-              ...fund,
-              values: {
-                ...fund.values,
-                [accountId]: createDollarAmount(value),
-              },
-            };
-          }),
-        })),
-      );
-    },
-    [portfolioList],
-  );
+          return {
+            ...fund,
+            values: {
+              ...fund.values,
+              [accountId]: createDollarAmount(value),
+            },
+          };
+        }),
+      })),
+    }));
+  }
 
   // Balances held in accounts that are no longer in the list are dropped.
-  const updateAccounts = useCallback(
-    (newAccounts: Account[]): void => {
-      accountList.setState(newAccounts);
-      portfolioList.setState((prev) =>
-        withoutOrphanedBalances(prev, newAccounts),
-      );
-      exitPlanningMode();
-    },
-    [accountList, portfolioList, exitPlanningMode],
-  );
+  function updateAccounts(newAccounts: Account[]): void {
+    setPortfolioState((prev) => ({
+      ...prev,
+      accounts: newAccounts,
+      portfolio: withoutOrphanedBalances(prev.portfolio, newAccounts),
+    }));
+    exitPlanningMode();
+  }
 
-  const updatePortfolio = useCallback(
-    (newPortfolio: AssetClass[]): void => {
-      portfolioList.setState(newPortfolio);
-      exitPlanningMode();
-    },
-    [portfolioList, exitPlanningMode],
-  );
+  function updatePortfolio(newPortfolio: AssetClass[]): void {
+    setPortfolioState((prev) => ({ ...prev, portfolio: newPortfolio }));
+    exitPlanningMode();
+  }
 
-  const handleDataImport = useCallback(
-    (
-      newAccounts: Account[],
-      newPortfolio: AssetClass[],
-      newToInvest: DollarAmount,
-    ): void => {
-      accountList.setState(newAccounts);
-      portfolioList.setState(newPortfolio);
-      setToInvest(newToInvest);
-      exitPlanningMode();
-      // Immediately save the imported data to localStorage
-      savePortfolioData(newAccounts, newPortfolio, newToInvest);
-    },
-    [accountList, portfolioList, exitPlanningMode],
-  );
+  function handleDataImport(
+    newAccounts: Account[],
+    newPortfolio: AssetClass[],
+    newToInvest: DollarAmount,
+  ): void {
+    setPortfolioState({
+      accounts: newAccounts,
+      portfolio: newPortfolio,
+      toInvest: newToInvest,
+    });
+    exitPlanningMode();
+    // Immediately save the imported data to localStorage
+    savePortfolioData(newAccounts, newPortfolio, newToInvest);
+  }
 
-  const resetToDefaults = useCallback((): void => {
-    const defaultAccountsList = defaultAccounts();
-    const defaultPortfolioList = defaultAssetClasses(defaultAccountsList);
-    const defaultToInvestValue = createDollarAmount(1500);
-
-    accountList.setState(defaultAccountsList);
-    portfolioList.setState(defaultPortfolioList);
-    setToInvest(defaultToInvestValue);
+  function resetToDefaults(): void {
+    const defaults = defaultPortfolioState();
+    setPortfolioState(defaults);
     exitPlanningMode();
 
     // Save the reset state immediately
-    savePortfolioData(
-      defaultAccountsList,
-      defaultPortfolioList,
-      defaultToInvestValue,
-    );
-  }, [accountList, portfolioList, exitPlanningMode]);
+    savePortfolioData(defaults.accounts, defaults.portfolio, defaults.toInvest);
+  }
 
-  const updatePendingChange = useCallback(
-    (fundKey: string, accountId: AccountId, changeAmount: number): void => {
-      setPendingChanges((prev) => ({
-        ...prev,
-        [fundKey]: { ...prev[fundKey], [accountId]: changeAmount },
-      }));
-    },
-    [],
-  );
+  function updatePendingChange(
+    fundKey: string,
+    accountId: AccountId,
+    changeAmount: number,
+  ): void {
+    setPendingChanges((prev) => ({
+      ...prev,
+      [fundKey]: { ...prev[fundKey], [accountId]: changeAmount },
+    }));
+  }
 
-  const enterPlanningMode = useCallback((): void => {
+  function enterPlanningMode(): void {
     setPlanningMode(true);
     setPendingChanges({});
-  }, []);
+  }
 
-  const applyPendingChanges = useCallback((): void => {
-    portfolioList.setState((prev) => withPendingChanges(prev, pendingChanges));
+  function applyPendingChanges(): void {
+    setPortfolioState((prev) => ({
+      ...prev,
+      portfolio: withPendingChanges(prev.portfolio, pendingChanges),
+    }));
 
     // Clear planning mode state
-    setPlanningMode(false);
-    setPendingChanges({});
-  }, [pendingChanges, portfolioList]);
+    exitPlanningMode();
+  }
 
   return {
     // State
@@ -207,6 +174,7 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     planningMode,
     pendingChanges,
     pendingBalance,
+    analysis,
 
     // Actions
     updateFundBalance,

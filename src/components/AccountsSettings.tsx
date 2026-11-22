@@ -8,7 +8,6 @@ import {
   ActionIcon,
   TextInput,
 } from "@mantine/core";
-import { memo } from "react";
 import {
   DndContext,
   closestCenter,
@@ -91,91 +90,90 @@ interface AccountsSettingsProps {
   onAccountsChange: (accounts: Account[]) => void;
 }
 
-export const AccountsSettings = memo<AccountsSettingsProps>(
-  function AccountsSettings({ accounts, onAccountsChange }) {
-    const { form, handleSubmit, addAccount, removeAccount, reorderAccounts } =
-      useAccountForm({ accounts, onAccountsChange });
+export function AccountsSettings({
+  accounts,
+  onAccountsChange,
+}: AccountsSettingsProps) {
+  const { form, handleSubmit, addAccount, removeAccount, reorderAccounts } =
+    useAccountForm({ accounts, onAccountsChange });
 
-    const sensors = useSensors(
-      useSensor(PointerSensor, {
-        activationConstraint: {
-          distance: 5,
-        },
-      }),
-      useSensor(KeyboardSensor, {
-        coordinateGetter: sortableKeyboardCoordinates,
-      }),
-    );
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
-    function handleDragEnd(event: DragEndEvent) {
-      const { active, over } = event;
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
 
-      if (over && active.id !== over.id) {
-        const oldIndex = form.values.accounts.findIndex(
-          (a) => a.key === active.id,
-        );
-        const newIndex = form.values.accounts.findIndex(
-          (a) => a.key === over.id,
-        );
-        reorderAccounts(oldIndex, newIndex);
-      }
+    if (over && active.id !== over.id) {
+      const oldIndex = form.values.accounts.findIndex(
+        (a) => a.key === active.id,
+      );
+      const newIndex = form.values.accounts.findIndex((a) => a.key === over.id);
+      reorderAccounts(oldIndex, newIndex);
     }
+  }
 
-    return (
-      <Paper shadow="sm" withBorder p="xl" className={classes.container}>
-        <Stack gap="md">
-          <div>
-            <Title order={3}>Investment Accounts</Title>
-            <Text size="sm" c="dimmed" mt="xs">
-              Define the accounts where you hold your investments (e.g., 401k,
-              IRA, Taxable)
-            </Text>
-          </div>
+  return (
+    <Paper shadow="sm" withBorder p="xl" className={classes.container}>
+      <Stack gap="md">
+        <div>
+          <Title order={3}>Investment Accounts</Title>
+          <Text size="sm" c="dimmed" mt="xs">
+            Define the accounts where you hold your investments (e.g., 401k,
+            IRA, Taxable)
+          </Text>
+        </div>
 
-          <form onSubmit={form.onSubmit(handleSubmit)}>
-            <Stack gap="md">
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
+        <form onSubmit={form.onSubmit(handleSubmit)}>
+          <Stack gap="md">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={form.values.accounts.map((a) => a.key)}
+                strategy={verticalListSortingStrategy}
               >
-                <SortableContext
-                  items={form.values.accounts.map((a) => a.key)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {form.values.accounts.map((account, idx) => (
-                    <SortableAccountItem
-                      key={account.key}
-                      account={account}
-                      index={idx}
-                      inputProps={form.getInputProps(`accounts.${idx}.name`)}
-                      onRemove={() => {
-                        removeAccount(idx);
-                      }}
-                    />
-                  ))}
-                </SortableContext>
-              </DndContext>
+                {form.values.accounts.map((account, idx) => (
+                  <SortableAccountItem
+                    key={account.key}
+                    account={account}
+                    index={idx}
+                    inputProps={form.getInputProps(`accounts.${idx}.name`)}
+                    onRemove={() => {
+                      removeAccount(idx);
+                    }}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
 
-              <Group
-                className={classes.actionButtons}
-                justify="space-between"
-                mt="lg"
+            <Group
+              className={classes.actionButtons}
+              justify="space-between"
+              mt="lg"
+            >
+              <Button variant="light" onClick={addAccount}>
+                + Add Account
+              </Button>
+              <Button
+                disabled={!form.isValid() || !form.isDirty()}
+                type="submit"
               >
-                <Button variant="light" onClick={addAccount}>
-                  + Add Account
-                </Button>
-                <Button
-                  disabled={!form.isValid() || !form.isDirty()}
-                  type="submit"
-                >
-                  Save Changes
-                </Button>
-              </Group>
-            </Stack>
-          </form>
-        </Stack>
-      </Paper>
-    );
-  },
-);
+                Save Changes
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Stack>
+    </Paper>
+  );
+}

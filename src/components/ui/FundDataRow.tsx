@@ -1,5 +1,4 @@
 import { Stack, TableTd, TableTr, Text } from "@mantine/core";
-import { memo } from "react";
 import { Account, AssetClass, Fund } from "../../types";
 import { usePortfolioContext } from "../../contexts/PortfolioContext";
 import { NumberField } from "./NumberField";
@@ -12,12 +11,12 @@ interface FundDataRowProps {
   isFirstFund: boolean;
 }
 
-export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
+export function FundDataRow({
   fund,
   assetClass,
   accounts,
   isFirstFund,
-}) {
+}: FundDataRowProps) {
   const {
     updateFundBalance,
     updatePendingChange,
@@ -81,4 +80,4 @@ export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
       )}
     </TableTr>
   );
-});
+}

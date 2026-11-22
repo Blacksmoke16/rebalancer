@@ -15,7 +15,6 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { memo, useCallback } from "react";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
 import type { AssetClassAnalysis } from "../portfolio";
 import { CurrencyCell, DeltaCell, PercentageCell } from "./ui/FormatCells";
@@ -30,7 +29,7 @@ interface AssetCalculation extends AssetClassAnalysis {
 }
 
 // Mobile Layout Component
-const MobileRebalanceLayout = memo(function MobileRebalanceLayout({
+function MobileRebalanceLayout({
   assetCalculations,
   toInvest,
   handleToInvestChange,
@@ -119,10 +118,10 @@ const MobileRebalanceLayout = memo(function MobileRebalanceLayout({
       )}
     </Stack>
   );
-});
+}
 
 // Desktop Layout Component
-const DesktopRebalanceLayout = memo(function DesktopRebalanceLayout({
+function DesktopRebalanceLayout({
   assetCalculations,
   toInvest,
   handleToInvestChange,
@@ -234,38 +233,32 @@ const DesktopRebalanceLayout = memo(function DesktopRebalanceLayout({
       </Paper>
     </ScrollArea>
   );
-});
+}
 
-export const RebalancingAnalysisTable = memo(
-  function RebalancingAnalysisTable() {
-    const { portfolio, toInvest, setToInvest, analysis } =
-      usePortfolioContext();
+export function RebalancingAnalysisTable() {
+  const { portfolio, toInvest, setToInvest, analysis } = usePortfolioContext();
 
-    const handleToInvestChange = useCallback(
-      (value: number) => {
-        setToInvest(createDollarAmount(value));
-      },
-      [setToInvest],
-    );
+  function handleToInvestChange(value: number) {
+    setToInvest(createDollarAmount(value));
+  }
 
-    const assetCalculations = portfolio.map((assetClass) => ({
-      assetClass,
-      ...analysis.assetClasses[assetClass.key],
-    }));
+  const assetCalculations = portfolio.map((assetClass) => ({
+    assetClass,
+    ...analysis.assetClasses[assetClass.key],
+  }));
 
-    return (
-      <>
-        <MobileRebalanceLayout
-          assetCalculations={assetCalculations}
-          toInvest={toInvest}
-          handleToInvestChange={handleToInvestChange}
-        />
-        <DesktopRebalanceLayout
-          assetCalculations={assetCalculations}
-          toInvest={toInvest}
-          handleToInvestChange={handleToInvestChange}
-        />
-      </>
-    );
-  },
-);
+  return (
+    <>
+      <MobileRebalanceLayout
+        assetCalculations={assetCalculations}
+        toInvest={toInvest}
+        handleToInvestChange={handleToInvestChange}
+      />
+      <DesktopRebalanceLayout
+        assetCalculations={assetCalculations}
+        toInvest={toInvest}
+        handleToInvestChange={handleToInvestChange}
+      />
+    </>
+  );
+}

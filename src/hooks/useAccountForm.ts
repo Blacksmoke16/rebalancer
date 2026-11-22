@@ -1,6 +1,6 @@
 import { formRootRule, isNotEmpty, useForm } from "@mantine/form";
 import { randomId } from "@mantine/hooks";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { Account } from "../types";
 import { AccountId } from "../types/branded";
 import { sanitizeName } from "../utils/validation";
@@ -39,36 +39,27 @@ export function useAccountForm({
     form.setInitialValues({ accounts });
   }, [accounts]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSubmit = useCallback(
-    (values: { accounts: Account[] }) => {
-      onAccountsChange(values.accounts);
-      form.setInitialValues({ accounts: values.accounts });
-      form.reset();
-    },
-    [onAccountsChange, form],
-  );
+  function handleSubmit(values: { accounts: Account[] }) {
+    onAccountsChange(values.accounts);
+    form.setInitialValues({ accounts: values.accounts });
+    form.reset();
+  }
 
-  const addAccount = useCallback(() => {
+  function addAccount() {
     form.insertListItem("accounts", {
       name: "",
       key: randomId() as AccountId,
     });
     form.clearFieldError("accounts");
-  }, [form]);
+  }
 
-  const removeAccount = useCallback(
-    (index: number) => {
-      form.removeListItem("accounts", index);
-    },
-    [form],
-  );
+  function removeAccount(index: number) {
+    form.removeListItem("accounts", index);
+  }
 
-  const reorderAccounts = useCallback(
-    (from: number, to: number) => {
-      form.reorderListItem("accounts", { from, to });
-    },
-    [form],
-  );
+  function reorderAccounts(from: number, to: number) {
+    form.reorderListItem("accounts", { from, to });
+  }
 
   return {
     form,

@@ -9,7 +9,6 @@ import {
   Title,
 } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
-import { memo } from "react";
 import { AssetClass } from "../../types";
 import { DeleteButton, PercentageInput } from "../ui/FormFields";
 import { FundsList } from "./FundsList";
@@ -24,92 +23,90 @@ interface AssetClassItemProps {
   onRemoveFund: (assetClassIndex: number, fundIndex: number) => void;
 }
 
-export const AssetClassItem = memo<AssetClassItemProps>(
-  function AssetClassItem({
-    assetClass,
-    assetIdx,
-    form,
-    onRemove,
-    onAddFund,
-    onRemoveFund,
-  }) {
-    return (
-      <Paper
-        key={assetClass.key}
-        withBorder
-        p="md"
-        className={classes.assetClassItem}
-      >
-        <Stack className={classes.assetClassContent}>
-          {/* Asset Class Header with Delete Button */}
-          <Group justify="space-between" align="flex-start" mb="sm">
-            <Stack gap="xs" style={{ flex: 1 }}>
-              <Text size="sm" fw={500} c="dimmed">
-                Asset Class
-              </Text>
+export function AssetClassItem({
+  assetClass,
+  assetIdx,
+  form,
+  onRemove,
+  onAddFund,
+  onRemoveFund,
+}: AssetClassItemProps) {
+  return (
+    <Paper
+      key={assetClass.key}
+      withBorder
+      p="md"
+      className={classes.assetClassItem}
+    >
+      <Stack className={classes.assetClassContent}>
+        {/* Asset Class Header with Delete Button */}
+        <Group justify="space-between" align="flex-start" mb="sm">
+          <Stack gap="xs" style={{ flex: 1 }}>
+            <Text size="sm" fw={500} c="dimmed">
+              Asset Class
+            </Text>
 
-              {/* Mobile Layout - Stack name and percentage */}
-              <Stack gap="xs" hiddenFrom="sm">
-                <TextInput
-                  label="Name"
-                  placeholder="Asset class name"
-                  {...form.getInputProps(`portfolio.${assetIdx}.name`)}
-                  data-testid={`asset-class-name-${assetIdx}`}
-                />
-                <PercentageInput
-                  {...form.getInputProps(`portfolio.${assetIdx}.allocation`)}
-                  data-testid={`asset-class-allocation-${assetIdx}`}
-                />
-              </Stack>
-
-              {/* Desktop Layout - Horizontal group */}
-              <Group gap="md" visibleFrom="sm">
-                <TextInput
-                  label="Name"
-                  placeholder="Asset class name"
-                  {...form.getInputProps(`portfolio.${assetIdx}.name`)}
-                  data-testid={`asset-class-name-${assetIdx}`}
-                />
-                <PercentageInput
-                  {...form.getInputProps(`portfolio.${assetIdx}.allocation`)}
-                  data-testid={`asset-class-allocation-${assetIdx}`}
-                />
-              </Group>
+            {/* Mobile Layout - Stack name and percentage */}
+            <Stack gap="xs" hiddenFrom="sm">
+              <TextInput
+                label="Name"
+                placeholder="Asset class name"
+                {...form.getInputProps(`portfolio.${assetIdx}.name`)}
+                data-testid={`asset-class-name-${assetIdx}`}
+              />
+              <PercentageInput
+                {...form.getInputProps(`portfolio.${assetIdx}.allocation`)}
+                data-testid={`asset-class-allocation-${assetIdx}`}
+              />
             </Stack>
 
-            <DeleteButton
-              onClick={() => {
-                onRemove(assetIdx);
-              }}
-              aria-label={`Delete entire ${assetClass.name || "asset class"} asset class`}
-            />
-          </Group>
+            {/* Desktop Layout - Horizontal group */}
+            <Group gap="md" visibleFrom="sm">
+              <TextInput
+                label="Name"
+                placeholder="Asset class name"
+                {...form.getInputProps(`portfolio.${assetIdx}.name`)}
+                data-testid={`asset-class-name-${assetIdx}`}
+              />
+              <PercentageInput
+                {...form.getInputProps(`portfolio.${assetIdx}.allocation`)}
+                data-testid={`asset-class-allocation-${assetIdx}`}
+              />
+            </Group>
+          </Stack>
 
-          <Box
-            pt="md"
-            style={{ borderTop: "1px solid var(--mantine-color-gray-3)" }}
+          <DeleteButton
+            onClick={() => {
+              onRemove(assetIdx);
+            }}
+            aria-label={`Delete entire ${assetClass.name || "asset class"} asset class`}
+          />
+        </Group>
+
+        <Box
+          pt="md"
+          style={{ borderTop: "1px solid var(--mantine-color-gray-3)" }}
+        >
+          <Title order={5} mb="sm">
+            Funds
+          </Title>
+          <FundsList
+            funds={assetClass.funds}
+            assetClassIndex={assetIdx}
+            form={form}
+            onRemoveFund={onRemoveFund}
+          />
+          <Button
+            size="sm"
+            className={classes.fundsSection}
+            onClick={() => {
+              onAddFund(assetIdx);
+            }}
           >
-            <Title order={5} mb="sm">
-              Funds
-            </Title>
-            <FundsList
-              funds={assetClass.funds}
-              assetClassIndex={assetIdx}
-              form={form}
-              onRemoveFund={onRemoveFund}
-            />
-            <Button
-              size="sm"
-              className={classes.fundsSection}
-              onClick={() => {
-                onAddFund(assetIdx);
-              }}
-            >
-              Add Fund
-            </Button>
-          </Box>
-        </Stack>
-      </Paper>
-    );
-  },
-);
+            Add Fund
+          </Button>
+        </Box>
+      </Stack>
+    </Paper>
+  );
+}

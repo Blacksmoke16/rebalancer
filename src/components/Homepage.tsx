@@ -6,9 +6,8 @@ import {
   IconCalculator,
   IconClipboard,
 } from "@tabler/icons-react";
-import { memo } from "react";
 
-export const Homepage = memo(function Homepage() {
+export function Homepage() {
   return (
     <Stack gap="xl">
       <Stack gap="md">
@@ -180,4 +179,4 @@ export const Homepage = memo(function Homepage() {
       </Card>
     </Stack>
   );
-});
+}

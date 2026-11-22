@@ -1,9 +1,8 @@
 import { Alert, Button, Group, Stack, Text } from "@mantine/core";
 import { IconAlertCircle, IconCheck } from "@tabler/icons-react";
-import { memo } from "react";
 import { usePortfolioContext } from "../../contexts/PortfolioContext";
 
-export const PlanningModeToggle = memo(function PlanningModeToggle() {
+export function PlanningModeToggle() {
   const { planningMode, enterPlanningMode, exitPlanningMode } =
     usePortfolioContext();
 
@@ -20,9 +19,9 @@ export const PlanningModeToggle = memo(function PlanningModeToggle() {
       Plan Transactions
     </Button>
   );
-});
+}
 
-export const PlanningModeAlert = memo(function PlanningModeAlert() {
+export function PlanningModeAlert() {
   const { planningMode, pendingBalance, pendingChanges, applyPendingChanges } =
     usePortfolioContext();
 
@@ -87,4 +86,4 @@ export const PlanningModeAlert = memo(function PlanningModeAlert() {
       </Group>
     </Stack>
   );
-});
+}
