@@ -37,6 +37,7 @@ export const mockAssetClass = (name = "Test Asset Class", allocation = 50) => ({
 
 export const mockFund = (ticker = "VTI") => ({
   ticker: ticker as any,
+  unit: "dollars" as const,
   values: {},
   key: `test-key-${ticker.toLowerCase()}`,
 });

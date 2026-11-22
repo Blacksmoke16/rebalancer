@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { Fragment } from "react";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
-import { assetClassTotal, fundTotal } from "../portfolio";
+import { assetClassTotal, fundDollarValues, fundTotal } from "../portfolio";
 import { AccountTotalsRow } from "./ui/AccountTotalsRow";
 import { AssetClassHeaderRow } from "./ui/AssetClassHeaderRow";
 import { FundDataRow } from "./ui/FundDataRow";
@@ -50,7 +50,10 @@ function MobilePortfolioLayout({
                         {account.name}:
                       </Text>
                       <Text size="sm">
-                        ${(fund.values[account.key] || 0).toLocaleString()}
+                        $
+                        {(
+                          fundDollarValues(fund)[account.key] ?? 0
+                        ).toLocaleString()}
                       </Text>
                     </Group>
                   ))}

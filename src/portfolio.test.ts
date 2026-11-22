@@ -1,11 +1,18 @@
 import { describe, it, expect } from "vitest";
 import {
   analyzePortfolio,
+  fundDollarValues,
+  fundTotal,
   withoutOrphanedBalances,
   withPendingChanges,
 } from "./portfolio";
-import { AccountId, AssetClassId, createDollarAmount } from "./types/branded";
-import type { AssetClass, PendingChanges } from "./types";
+import {
+  AccountId,
+  AssetClassId,
+  createDollarAmount,
+  createShareCount,
+} from "./types/branded";
+import type { AssetClass, Fund, PendingChanges, ShareFund } from "./types";
 
 // Holdings are keyed by account id; these stand in for those ids in the mocks.
 const ACCOUNT_IDS = {
@@ -26,6 +33,7 @@ const mockPortfolio: AssetClass[] = [
     funds: [
       {
         ticker: "VTI",
+        unit: "dollars",
         values: {
           [ACCOUNT_IDS.k401]: createDollarAmount(3000),
           [ACCOUNT_IDS.roth]: createDollarAmount(2000),
@@ -42,6 +50,7 @@ const mockPortfolio: AssetClass[] = [
     funds: [
       {
         ticker: "VXUS",
+        unit: "dollars",
         values: {
           [ACCOUNT_IDS.k401]: createDollarAmount(1500),
           [ACCOUNT_IDS.roth]: createDollarAmount(1000),
@@ -58,6 +67,7 @@ const mockPortfolio: AssetClass[] = [
     funds: [
       {
         ticker: "BND",
+        unit: "dollars",
         values: {
           [ACCOUNT_IDS.k401]: createDollarAmount(500),
           [ACCOUNT_IDS.roth]: createDollarAmount(300),
@@ -80,6 +90,7 @@ function with401kBalances(us: number, intl: number, bonds: number) {
     funds: [
       {
         ...assetClass.funds[0],
+        unit: "dollars" as const,
         values: {
           [ACCOUNT_IDS.k401]: createDollarAmount([us, intl, bonds][i]),
         },
@@ -87,6 +98,63 @@ function with401kBalances(us: number, intl: number, bonds: number) {
     ],
   }));
 }
+
+// A share-tracked VTI fund holding the given number of shares in each account.
+function vtiShares(
+  shares: Record<string, number>,
+  price: number | null,
+): ShareFund {
+  return {
+    ticker: "VTI",
+    unit: "shares",
+    shares: Object.fromEntries(
+      Object.entries(shares).map(([id, count]) => [
+        id,
+        createShareCount(count),
+      ]),
+    ),
+    price,
+    priceAsOf: price === null ? null : "2026-11-20T21:00:00.000Z",
+    key: "vti-key",
+  };
+}
+
+// mockPortfolio with the US asset class holding only the given fund.
+function withUsFund(fund: Fund): AssetClass[] {
+  return mockPortfolio.map((assetClass) =>
+    assetClass.key === US ? { ...assetClass, funds: [fund] } : assetClass,
+  );
+}
+
+describe("fundDollarValues", () => {
+  it("returns a dollar fund's balances", () => {
+    expect(fundDollarValues(mockPortfolio[0].funds[0])).toEqual({
+      [ACCOUNT_IDS.k401]: 3000,
+      [ACCOUNT_IDS.roth]: 2000,
+      [ACCOUNT_IDS.brokerage]: 1000,
+    });
+  });
+
+  it("values a share fund's holdings at shares times price", () => {
+    const fund = vtiShares(
+      { [ACCOUNT_IDS.k401]: 10, [ACCOUNT_IDS.roth]: 2.5 },
+      200.5,
+    );
+
+    expect(fundDollarValues(fund)).toEqual({
+      [ACCOUNT_IDS.k401]: 2005,
+      [ACCOUNT_IDS.roth]: 501.25,
+    });
+    expect(fundTotal(fund)).toBe(2506.25);
+  });
+
+  it("values an unpriced share fund at $0", () => {
+    const fund = vtiShares({ [ACCOUNT_IDS.k401]: 10 }, null);
+
+    expect(fundDollarValues(fund)).toEqual({ [ACCOUNT_IDS.k401]: 0 });
+    expect(fundTotal(fund)).toBe(0);
+  });
+});
 
 describe("analyzePortfolio", () => {
   describe("Portfolio Totals", () => {
@@ -187,6 +255,23 @@ describe("analyzePortfolio", () => {
         (1958.33 / 11000) * 100,
         2,
       );
+    });
+  });
+
+  describe("Share Funds", () => {
+    it("should count share funds at shares times price", () => {
+      const { total, accountTotals, assetClasses } = analyzePortfolio(
+        withUsFund(
+          vtiShares({ [ACCOUNT_IDS.k401]: 10, [ACCOUNT_IDS.roth]: 2 }, 250),
+        ),
+        toInvest,
+      );
+
+      expect(assetClasses[US].current).toBe(3000);
+      expect(assetClasses[US].accountTotals[ACCOUNT_IDS.roth]).toBe(500);
+      expect(accountTotals[ACCOUNT_IDS.k401]).toBe(2500 + 1500 + 500);
+      // US: 3000, Intl: 3000, Bonds: 1000
+      expect(total).toBe(7000);
     });
   });
 
@@ -301,7 +386,9 @@ describe("withPendingChanges (Planning Mode)", () => {
       "vti-key": { [ACCOUNT_IDS.hsa]: 0 },
     });
 
-    expect(usStocks.funds[0].values).not.toHaveProperty(ACCOUNT_IDS.hsa);
+    expect(fundDollarValues(usStocks.funds[0])).not.toHaveProperty(
+      ACCOUNT_IDS.hsa,
+    );
   });
 
   it("should not modify the original portfolio", () => {
@@ -309,7 +396,7 @@ describe("withPendingChanges (Planning Mode)", () => {
       "vti-key": { [ACCOUNT_IDS.k401]: 500, [ACCOUNT_IDS.hsa]: 100 },
     });
 
-    expect(mockPortfolio[0].funds[0].values).toEqual({
+    expect(fundDollarValues(mockPortfolio[0].funds[0])).toEqual({
       [ACCOUNT_IDS.k401]: 3000,
       [ACCOUNT_IDS.roth]: 2000,
       [ACCOUNT_IDS.brokerage]: 1000,
@@ -354,11 +441,13 @@ describe("withPendingChanges (Planning Mode)", () => {
         funds: [
           {
             ticker: "VTI",
+            unit: "dollars",
             values: { [ACCOUNT_IDS.k401]: createDollarAmount(3000) },
             key: "vti-key",
           },
           {
             ticker: "VTSAX",
+            unit: "dollars",
             values: { [ACCOUNT_IDS.roth]: createDollarAmount(2000) },
             key: "vtsax-key",
           },
@@ -380,6 +469,42 @@ describe("withPendingChanges (Planning Mode)", () => {
   });
 });
 
+describe("withPendingChanges for share funds", () => {
+  it("should convert a planned dollar change into shares at the fund's price", () => {
+    const [usStocks] = withPendingChanges(
+      withUsFund(vtiShares({ [ACCOUNT_IDS.k401]: 10 }, 250)),
+      { "vti-key": { [ACCOUNT_IDS.k401]: 500, [ACCOUNT_IDS.roth]: 125 } },
+    );
+
+    expect(usStocks.funds[0]).toEqual(
+      vtiShares({ [ACCOUNT_IDS.k401]: 12, [ACCOUNT_IDS.roth]: 0.5 }, 250),
+    );
+  });
+
+  it("should leave no shares after selling a holding's whole dollar value", () => {
+    const fund = vtiShares({ [ACCOUNT_IDS.k401]: 10.123456 }, 237.45);
+    const value = fundDollarValues(fund)[ACCOUNT_IDS.k401] ?? 0;
+
+    const [usStocks] = withPendingChanges(withUsFund(fund), {
+      "vti-key": { [ACCOUNT_IDS.k401]: -value },
+    });
+
+    expect(usStocks.funds[0]).toEqual(
+      vtiShares({ [ACCOUNT_IDS.k401]: 0 }, 237.45),
+    );
+  });
+
+  it("should leave an unpriced share fund unchanged", () => {
+    const fund = vtiShares({ [ACCOUNT_IDS.k401]: 10 }, null);
+
+    const [usStocks] = withPendingChanges(withUsFund(fund), {
+      "vti-key": { [ACCOUNT_IDS.k401]: 500 },
+    });
+
+    expect(usStocks.funds[0]).toBe(fund);
+  });
+});
+
 describe("withoutOrphanedBalances", () => {
   const remainingAccounts = [
     { name: "401k", key: ACCOUNT_IDS.k401 },
@@ -389,7 +514,7 @@ describe("withoutOrphanedBalances", () => {
   it("should drop balances held in accounts that no longer exist", () => {
     const portfolio = withoutOrphanedBalances(mockPortfolio, remainingAccounts);
 
-    expect(portfolio[0].funds[0].values).toEqual({
+    expect(fundDollarValues(portfolio[0].funds[0])).toEqual({
       [ACCOUNT_IDS.k401]: 3000,
       [ACCOUNT_IDS.roth]: 2000,
     });
@@ -401,10 +526,23 @@ describe("withoutOrphanedBalances", () => {
     );
   });
 
+  it("should drop share holdings in accounts that no longer exist", () => {
+    const portfolio = withoutOrphanedBalances(
+      withUsFund(
+        vtiShares({ [ACCOUNT_IDS.k401]: 10, [ACCOUNT_IDS.hsa]: 4 }, 250),
+      ),
+      remainingAccounts,
+    );
+
+    expect(portfolio[0].funds[0]).toEqual(
+      vtiShares({ [ACCOUNT_IDS.k401]: 10 }, 250),
+    );
+  });
+
   it("should not modify the original portfolio", () => {
     withoutOrphanedBalances(mockPortfolio, remainingAccounts);
 
-    expect(mockPortfolio[0].funds[0].values).toHaveProperty(
+    expect(fundDollarValues(mockPortfolio[0].funds[0])).toHaveProperty(
       ACCOUNT_IDS.brokerage,
     );
   });

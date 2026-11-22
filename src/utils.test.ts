@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { fundDollarValues } from "./portfolio";
 import { defaultAccounts, defaultAssetClasses } from "./utils";
 
 describe("defaultAccounts", () => {
@@ -37,7 +38,7 @@ describe("defaultAssetClasses", () => {
     const accountIds = accounts.map((a) => a.key);
 
     const balanceKeys = defaultAssetClasses(accounts).flatMap((assetClass) =>
-      assetClass.funds.flatMap((fund) => Object.keys(fund.values)),
+      assetClass.funds.flatMap((fund) => Object.keys(fundDollarValues(fund))),
     );
 
     expect(balanceKeys.length).toBeGreaterThan(0);

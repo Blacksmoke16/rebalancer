@@ -1,4 +1,9 @@
-import type { AccountId, AssetClassId, DollarAmount } from "./types/branded";
+import type {
+  AccountId,
+  AssetClassId,
+  DollarAmount,
+  ShareCount,
+} from "./types/branded";
 
 export interface Account {
   name: string;
@@ -6,12 +11,31 @@ export interface Account {
 }
 
 export type AccountBalances = Record<AccountId, DollarAmount>;
+export type AccountShares = Record<AccountId, ShareCount>;
 
-export interface Fund {
+interface FundBase {
   ticker: string;
-  values: AccountBalances;
   key: string;
 }
+
+// A fund whose holdings are tracked as a dollar balance in each account.
+export interface DollarFund extends FundBase {
+  unit: "dollars";
+  values: AccountBalances;
+}
+
+// A fund whose holdings are tracked as a number of shares in each account,
+// valued at the fund's price.
+export interface ShareFund extends FundBase {
+  unit: "shares";
+  shares: AccountShares;
+  // Dollars per share, with cents; null until a price is set.
+  price: number | null;
+  // ISO timestamp of the quote or manual entry the price came from.
+  priceAsOf: string | null;
+}
+
+export type Fund = DollarFund | ShareFund;
 
 export interface AssetClass {
   name: string;

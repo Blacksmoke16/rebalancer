@@ -1,5 +1,10 @@
 import type { Account, AssetClass, Fund, PendingChanges } from "./types";
-import { AccountId, AssetClassId, createDollarAmount } from "./types/branded";
+import {
+  AccountId,
+  AssetClassId,
+  createDollarAmount,
+  createShareCount,
+} from "./types/branded";
 
 export interface AssetClassAnalysis {
   current: number;
@@ -21,8 +26,26 @@ export interface PortfolioAnalysis {
   assetClasses: Record<AssetClassId, AssetClassAnalysis>;
 }
 
+// Dollar value of the fund in each account. Share funds are valued at shares
+// times price; an unpriced share fund is worth $0.
+export function fundDollarValues(
+  fund: Fund,
+): Partial<Record<AccountId, number>> {
+  if (fund.unit === "dollars") return fund.values;
+
+  const price = fund.price ?? 0;
+  const values: Partial<Record<AccountId, number>> = {};
+  for (const [accountId, shares] of Object.entries(fund.shares)) {
+    values[accountId as AccountId] = shares * price;
+  }
+  return values;
+}
+
 export function fundTotal(fund: Fund): number {
-  return Object.values(fund.values).reduce((sum, value) => sum + value, 0);
+  return Object.values(fundDollarValues(fund)).reduce<number>(
+    (sum, value) => sum + (value ?? 0),
+    0,
+  );
 }
 
 export function assetClassTotal(assetClass: AssetClass): number {
@@ -30,7 +53,8 @@ export function assetClassTotal(assetClass: AssetClass): number {
 }
 
 // Returns a copy of the portfolio with each non-zero pending change added to
-// the matching fund's balance in that account.
+// the matching fund's balance in that account. Changes are in dollars, so share
+// funds gain or lose `change / price` shares.
 export function withPendingChanges(
   portfolio: AssetClass[],
   pendingChanges: PendingChanges,
@@ -42,6 +66,20 @@ export function withPendingChanges(
         ([, change]) => change !== 0,
       );
       if (changes.length === 0) return fund;
+
+      if (fund.unit === "shares") {
+        // Dollars can't be converted into shares without a price.
+        if (!fund.price) return fund;
+
+        const shares = { ...fund.shares };
+        for (const [accountId, change] of changes) {
+          const id = accountId as AccountId;
+          shares[id] = createShareCount(
+            (shares[id] ?? 0) + change / fund.price,
+          );
+        }
+        return { ...fund, shares };
+      }
 
       const values = { ...fund.values };
       for (const [accountId, change] of changes) {
@@ -60,16 +98,23 @@ export function withoutOrphanedBalances(
   accounts: Account[],
 ): AssetClass[] {
   const accountIds = new Set<string>(accounts.map((account) => account.key));
+  function heldInAccounts<T>(
+    holdings: Record<AccountId, T>,
+  ): Record<AccountId, T> {
+    return Object.fromEntries(
+      Object.entries(holdings).filter(([accountId]) =>
+        accountIds.has(accountId),
+      ),
+    );
+  }
+
   return portfolio.map((assetClass) => ({
     ...assetClass,
-    funds: assetClass.funds.map((fund) => ({
-      ...fund,
-      values: Object.fromEntries(
-        Object.entries(fund.values).filter(([accountId]) =>
-          accountIds.has(accountId),
-        ),
-      ),
-    })),
+    funds: assetClass.funds.map((fund): Fund =>
+      fund.unit === "shares"
+        ? { ...fund, shares: heldInAccounts(fund.shares) }
+        : { ...fund, values: heldInAccounts(fund.values) },
+    ),
   }));
 }
 
@@ -93,7 +138,7 @@ export function analyzePortfolio(
   const holdings = portfolio.map((assetClass) => {
     const accountTotals: Partial<Record<AccountId, number>> = {};
     for (const fund of assetClass.funds) {
-      addAccountTotals(accountTotals, fund.values);
+      addAccountTotals(accountTotals, fundDollarValues(fund));
     }
     return { assetClass, accountTotals, current: assetClassTotal(assetClass) };
   });
