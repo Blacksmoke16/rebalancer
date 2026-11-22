@@ -1,4 +1,3 @@
-import { useListState } from "@mantine/hooks";
 import { createContext, use } from "react";
 import { PortfolioAnalysis } from "../portfolio";
 import { Account, AssetClass, PendingChanges } from "../types";
@@ -23,6 +22,8 @@ export interface PortfolioContextValue {
     accountId: AccountId,
     changeAmount: number,
   ) => void;
+  updateAccounts: (newAccounts: Account[]) => void;
+  updatePortfolio: (newPortfolio: AssetClass[]) => void;
   enterPlanningMode: () => void;
   exitPlanningMode: () => void;
   applyPendingChanges: () => void;
@@ -33,8 +34,6 @@ export interface PortfolioContextValue {
     newPortfolio: AssetClass[],
     newToInvest: DollarAmount,
   ) => void;
-  accountList: ReturnType<typeof useListState<Account>>[1];
-  portfolioList: ReturnType<typeof useListState<AssetClass>>[1];
 }
 
 export const PortfolioContext = createContext<

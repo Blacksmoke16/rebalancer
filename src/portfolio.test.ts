@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { analyzePortfolio, withPendingChanges } from "./portfolio";
+import {
+  analyzePortfolio,
+  withoutOrphanedBalances,
+  withPendingChanges,
+} from "./portfolio";
 import {
   AccountId,
   AssetClassId,
@@ -378,5 +382,35 @@ describe("withPendingChanges (Planning Mode)", () => {
 
     // US stocks total: (3000 + 500) + (2000 - 300) = 5200
     expect(assetClasses[US].current).toBe(5200);
+  });
+});
+
+describe("withoutOrphanedBalances", () => {
+  const remainingAccounts = [
+    { name: "401k", key: ACCOUNT_IDS.k401 },
+    { name: "Roth IRA", key: ACCOUNT_IDS.roth },
+  ];
+
+  it("should drop balances held in accounts that no longer exist", () => {
+    const portfolio = withoutOrphanedBalances(mockPortfolio, remainingAccounts);
+
+    expect(portfolio[0].funds[0].values).toEqual({
+      [ACCOUNT_IDS.k401]: 3000,
+      [ACCOUNT_IDS.roth]: 2000,
+    });
+    // Totals now match the sum of the remaining accounts.
+    const { total, accountTotals } = analyzePortfolio(portfolio, toInvest);
+    expect(total).toBe(
+      (accountTotals[ACCOUNT_IDS.k401] ?? 0) +
+        (accountTotals[ACCOUNT_IDS.roth] ?? 0),
+    );
+  });
+
+  it("should not modify the original portfolio", () => {
+    withoutOrphanedBalances(mockPortfolio, remainingAccounts);
+
+    expect(mockPortfolio[0].funds[0].values).toHaveProperty(
+      ACCOUNT_IDS.brokerage,
+    );
   });
 });

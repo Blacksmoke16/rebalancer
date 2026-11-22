@@ -1,4 +1,4 @@
-import type { AssetClass, Fund, PendingChanges } from "./types";
+import type { Account, AssetClass, Fund, PendingChanges } from "./types";
 import { AccountId, AssetClassId, createDollarAmount } from "./types/branded";
 
 export interface AssetClassAnalysis {
@@ -50,6 +50,26 @@ export function withPendingChanges(
       }
       return { ...fund, values };
     }),
+  }));
+}
+
+// Returns a copy of the portfolio keeping only the balances held in the given
+// accounts, dropping any left behind by accounts that were deleted.
+export function withoutOrphanedBalances(
+  portfolio: AssetClass[],
+  accounts: Account[],
+): AssetClass[] {
+  const accountIds = new Set<string>(accounts.map((account) => account.key));
+  return portfolio.map((assetClass) => ({
+    ...assetClass,
+    funds: assetClass.funds.map((fund) => ({
+      ...fund,
+      values: Object.fromEntries(
+        Object.entries(fund.values).filter(([accountId]) =>
+          accountIds.has(accountId),
+        ),
+      ),
+    })),
   }));
 }
 

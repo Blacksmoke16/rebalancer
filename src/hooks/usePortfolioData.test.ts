@@ -1,13 +1,16 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { act, renderHook, waitFor } from "../test/utils";
-import { analyzePortfolio } from "../portfolio";
+import { analyzePortfolio, withPendingChanges } from "../portfolio";
 import { usePortfolioData } from "./usePortfolioData";
 
-// Composes the data hook with the portfolio analysis the way the app does,
-// exposing both the mutators and the derived per-account totals.
+// Composes the data hook with the portfolio analysis the way PortfolioProvider
+// does, exposing both the mutators and the derived totals.
 function usePortfolio() {
   const data = usePortfolioData();
-  const analysis = analyzePortfolio(data.portfolio, data.toInvest);
+  const analysis = analyzePortfolio(
+    withPendingChanges(data.portfolio, data.pendingChanges),
+    data.toInvest,
+  );
   return { ...data, analysis };
 }
 
@@ -18,6 +21,28 @@ async function renderPortfolio() {
     expect(result.current.accounts.length).toBeGreaterThan(0);
   });
   return result;
+}
+
+type Portfolio = Awaited<ReturnType<typeof renderPortfolio>>;
+
+// Enters planning mode with a planned sale of the first fund's whole balance in
+// the first account.
+function planSaleInFirstAccount(result: Portfolio) {
+  const fund = result.current.portfolio[0].funds[0];
+  const account = result.current.accounts[0].key;
+  const balance: number = fund.values[account] ?? 0;
+  act(() => {
+    result.current.enterPlanningMode();
+  });
+  act(() => {
+    result.current.updatePendingChange(fund.key, account, -balance);
+  });
+  expect(result.current.pendingBalance).toBeLessThan(0);
+}
+
+function expectPlanningEnded(result: Portfolio) {
+  expect(result.current.planningMode).toBe(false);
+  expect(result.current.pendingChanges).toEqual({});
 }
 
 describe("usePortfolioData", () => {
@@ -34,8 +59,8 @@ describe("usePortfolioData", () => {
 
     // Rename the account, keeping its stable key (what the settings form does).
     act(() => {
-      result.current.accountList.setState((accounts) =>
-        accounts.map((a) =>
+      result.current.updateAccounts(
+        result.current.accounts.map((a) =>
           a.key === account.key ? { ...a, name: `${a.name} (renamed)` } : a,
         ),
       );
@@ -47,12 +72,81 @@ describe("usePortfolioData", () => {
     );
   });
 
+  it("drops a deleted account's balances so totals match the remaining accounts", async () => {
+    const result = await renderPortfolio();
+    const [deleted, ...remaining] = result.current.accounts;
+
+    act(() => {
+      result.current.updateAccounts(remaining);
+    });
+
+    const { total, accountTotals } = result.current.analysis;
+    expect(accountTotals[deleted.key]).toBeUndefined();
+    expect(total).toBe(
+      remaining.reduce((sum, a) => sum + (accountTotals[a.key] ?? 0), 0),
+    );
+  });
+
+  it("ends planning mode when accounts are saved", async () => {
+    const result = await renderPortfolio();
+    planSaleInFirstAccount(result);
+
+    // Deleting the account the planned sale was in.
+    act(() => {
+      result.current.updateAccounts(result.current.accounts.slice(1));
+    });
+
+    expectPlanningEnded(result);
+  });
+
+  it("ends planning mode when the portfolio is saved", async () => {
+    const result = await renderPortfolio();
+    planSaleInFirstAccount(result);
+
+    act(() => {
+      result.current.updatePortfolio(result.current.portfolio);
+    });
+
+    expectPlanningEnded(result);
+  });
+
+  it("ends planning mode when data is imported", async () => {
+    const result = await renderPortfolio();
+    planSaleInFirstAccount(result);
+
+    // Importing the same accounts and funds with smaller balances.
+    act(() => {
+      result.current.handleDataImport(
+        result.current.accounts,
+        result.current.portfolio.map((assetClass) => ({
+          ...assetClass,
+          funds: assetClass.funds.map((fund) => ({ ...fund, values: {} })),
+        })),
+        result.current.toInvest,
+      );
+    });
+
+    expectPlanningEnded(result);
+  });
+
+  it("ends planning mode when reset to defaults", async () => {
+    const result = await renderPortfolio();
+    planSaleInFirstAccount(result);
+
+    act(() => {
+      result.current.resetToDefaults();
+    });
+
+    expectPlanningEnded(result);
+  });
+
   it("updates only the targeted fund when asset classes share a name and ticker", async () => {
     const result = await renderPortfolio();
 
     // Give the second asset class the same name and ticker as the first.
+    const [first, second, ...rest] = result.current.portfolio;
     act(() => {
-      result.current.portfolioList.setState(([first, second, ...rest]) => [
+      result.current.updatePortfolio([
         first,
         {
           ...second,
@@ -62,7 +156,6 @@ describe("usePortfolioData", () => {
         ...rest,
       ]);
     });
-    const [first, second] = result.current.portfolio;
     const account = result.current.accounts[0].key;
     const secondBalanceBefore = second.funds[0].values[account];
 
@@ -79,8 +172,9 @@ describe("usePortfolioData", () => {
   it("applies a planned change to an asset class whose name contains |", async () => {
     const result = await renderPortfolio();
 
+    const [first, ...rest] = result.current.portfolio;
     act(() => {
-      result.current.portfolioList.setState(([first, ...rest]) => [
+      result.current.updatePortfolio([
         { ...first, name: "US | Total" },
         ...rest,
       ]);
@@ -102,8 +196,7 @@ describe("usePortfolioData", () => {
     expect(result.current.portfolio[0].funds[0].values[account]).toBe(
       balanceBefore + 100,
     );
-    expect(result.current.planningMode).toBe(false);
-    expect(result.current.pendingChanges).toEqual({});
+    expectPlanningEnded(result);
   });
 
   it("sums planned changes across funds and accounts", async () => {

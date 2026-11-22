@@ -1,4 +1,5 @@
 import { STORAGE } from "./constants";
+import { withoutOrphanedBalances } from "./portfolio";
 import { Account, AccountBalances, AssetClass, PortfolioData } from "./types";
 import { AccountId, DollarAmount } from "./types/branded";
 
@@ -46,11 +47,22 @@ export function loadPortfolioData(): PortfolioData | null {
       return null;
     }
 
-    return migrateBalanceKeys(data);
+    return normalizeBalances(data);
   } catch {
     console.error("Failed to load portfolio data from localStorage");
     return null;
   }
+}
+
+// Brings stored balances in line with the stored accounts. Name-keyed balances
+// are remapped first so they aren't mistaken for balances of deleted accounts,
+// which are then dropped.
+function normalizeBalances(data: PortfolioData): PortfolioData {
+  const migrated = migrateBalanceKeys(data);
+  return {
+    ...migrated,
+    portfolio: withoutOrphanedBalances(migrated.portfolio, migrated.accounts),
+  };
 }
 
 // Holdings are keyed by account id. Data saved by earlier versions keyed them
@@ -121,7 +133,7 @@ export function importPortfolioData(file: File): Promise<PortfolioData> {
           return;
         }
 
-        resolve(migrateBalanceKeys(data));
+        resolve(normalizeBalances(data));
       } catch {
         reject(new Error("Failed to parse JSON file"));
       }

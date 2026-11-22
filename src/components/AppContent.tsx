@@ -32,8 +32,13 @@ import { PortfolioSummaryCards } from "./ui/PortfolioSummaryCards";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
 
 export function AppContent() {
-  const { accounts, portfolio, handleDataImport, accountList, portfolioList } =
-    usePortfolioContext();
+  const {
+    accounts,
+    portfolio,
+    handleDataImport,
+    updateAccounts,
+    updatePortfolio,
+  } = usePortfolioContext();
 
   // Read during the first render so the saved tab shows without a flash of
   // the home tab, and kept per window rather than synced across windows.
@@ -72,11 +77,11 @@ export function AppContent() {
           <Title order={2}>Configuration</Title>
           <AccountsSettings
             accounts={accounts}
-            onAccountsChange={accountList.setState}
+            onAccountsChange={updateAccounts}
           />
           <AssetClassSettings
             portfolio={portfolio}
-            onPortfolioChange={portfolioList.setState}
+            onPortfolioChange={updatePortfolio}
           />
           <DataManagement onDataImported={handleDataImport} />
         </Stack>
