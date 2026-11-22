@@ -1,10 +1,4 @@
-import type {
-  AccountId,
-  AssetClassId,
-  DollarAmount,
-  FundTicker,
-  Percentage,
-} from "./types/branded";
+import type { AccountId, AssetClassId, DollarAmount } from "./types/branded";
 
 export interface Account {
   name: string;
@@ -14,14 +8,15 @@ export interface Account {
 export type AccountBalances = Record<AccountId, DollarAmount>;
 
 export interface Fund {
-  ticker: FundTicker;
+  ticker: string;
   values: AccountBalances;
   key: string;
 }
 
 export interface AssetClass {
   name: string;
-  allocation: Percentage;
+  // 0-100
+  allocation: number;
   funds: Fund[];
   key: AssetClassId;
 }

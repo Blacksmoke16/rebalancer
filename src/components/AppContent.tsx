@@ -32,6 +32,9 @@ import {
 import { PortfolioSummaryCards } from "./ui/PortfolioSummaryCards";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
 
+// Read once when the app loads rather than on every render, which must be pure.
+const currentYear = new Date().getFullYear();
+
 export function AppContent() {
   const {
     accounts,
@@ -178,7 +181,7 @@ export function AppContent() {
       <AppShell.Footer p="md">
         <Group justify="space-between" align="center" h="100%">
           <Text size="sm" c="dimmed">
-            © {new Date().getFullYear()} George Dietrich (Blacksmoke16)
+            © {currentYear} George Dietrich (Blacksmoke16)
           </Text>
 
           <Group gap="xs">

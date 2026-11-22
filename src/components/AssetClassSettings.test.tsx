@@ -2,22 +2,16 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithMantine, screen } from "../test/utils";
 import { AssetClass } from "../types";
-import {
-  AccountId,
-  AssetClassId,
-  DollarAmount,
-  FundTicker,
-  Percentage,
-} from "../types/branded";
+import { AccountId, AssetClassId, DollarAmount } from "../types/branded";
 import { AssetClassSettings } from "./AssetClassSettings";
 
 const portfolio: AssetClass[] = [
   {
     name: "Stocks",
-    allocation: 100 as Percentage,
+    allocation: 100,
     funds: [
       {
-        ticker: "VTI" as FundTicker,
+        ticker: "VTI",
         values: { ["account-1" as AccountId]: 500 as DollarAmount },
         key: "fund-1",
       },
