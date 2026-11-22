@@ -1,7 +1,7 @@
 // Storage configuration
 export const STORAGE = {
   KEY: "rebalancer-portfolio-data",
-  VERSION: "1.0.0",
+  VERSION: "1.1.0",
   AUTO_SAVE_DELAY_MS: 1000,
 } as const;
 

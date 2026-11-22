@@ -1,6 +1,7 @@
 import { Stack, TableTd, TableTr, Text } from "@mantine/core";
 import { Account, AssetClass, Fund } from "../../types";
 import { usePortfolioContext } from "../../contexts/PortfolioContext";
+import { fundDollarValues } from "../../portfolio";
 import { NumberField } from "./NumberField";
 import classes from "../../App.module.css";
 
@@ -23,13 +24,14 @@ export function FundDataRow({
     planningMode,
     pendingChanges,
   } = usePortfolioContext();
+  const dollarValues = fundDollarValues(fund);
 
   return (
     <TableTr>
       {isFirstFund && <TableTd rowSpan={assetClass.funds.length} />}
       <TableTd>{fund.ticker}</TableTd>
       {accounts.map((account) => {
-        const currentValue = fund.values[account.key] || 0;
+        const currentValue = dollarValues[account.key] ?? 0;
         const pendingChange = pendingChanges[fund.key]?.[account.key] || 0;
         const projectedValue = currentValue + pendingChange;
 
@@ -46,9 +48,7 @@ export function FundDataRow({
                   onValueChange={(value) => {
                     // Cap negative changes to prevent negative balances
                     const cappedValue =
-                      value < 0
-                        ? Math.max(value, -(currentValue as number))
-                        : value;
+                      value < 0 ? Math.max(value, -currentValue) : value;
                     updatePendingChange(fund.key, account.key, cappedValue);
                   }}
                 />

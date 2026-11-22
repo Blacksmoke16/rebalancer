@@ -3,6 +3,7 @@ import {
   createDollarAmount,
   createAccountId,
   createAssetClassId,
+  createShareCount,
   type DollarAmount,
   type AccountId,
   type AssetClassId,
@@ -39,6 +40,33 @@ describe("Branded Types", () => {
 
       expect(dollarAmount).toBe(number);
       expect(typeof dollarAmount).toBe("number");
+    });
+  });
+
+  describe("createShareCount", () => {
+    it("should keep fractional shares", () => {
+      expect(createShareCount(0)).toBe(0);
+      expect(createShareCount(12)).toBe(12);
+      expect(createShareCount(10.123456)).toBe(10.123456);
+    });
+
+    it("should round to 6 decimal places to drop floating-point noise", () => {
+      expect(createShareCount(0.1 + 0.2)).toBe(0.3);
+      expect(createShareCount(1.0000004)).toBe(1);
+      expect(createShareCount(1.0000006)).toBe(1.000001);
+    });
+
+    it("should treat noise just below zero as zero", () => {
+      expect(createShareCount(-1e-12)).toBe(0);
+    });
+
+    it("should throw error for negative values", () => {
+      expect(() => createShareCount(-1)).toThrow(
+        "Invalid share count: -1. Must be non-negative.",
+      );
+      expect(() => createShareCount(-0.001)).toThrow(
+        "Invalid share count: -0.001. Must be non-negative.",
+      );
     });
   });
 

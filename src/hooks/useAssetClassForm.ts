@@ -57,28 +57,31 @@ export function useAssetClassForm({
     form.setValues({ portfolio });
   }, [portfolio]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // The form doesn't edit balances, so each existing fund keeps its current
-  // balances rather than the form's copy; funds added in the form keep theirs.
-  function preserveFundValues(newPortfolio: AssetClass[]): AssetClass[] {
-    const valuesByFundKey = new Map(
+  // The form only edits tickers, so each existing fund keeps its current unit,
+  // holdings, and price rather than the form's copy; funds added in the form
+  // keep theirs.
+  function preserveFundHoldings(newPortfolio: AssetClass[]): AssetClass[] {
+    const fundsByKey = new Map(
       portfolio
         .flatMap((assetClass) => assetClass.funds)
-        .map((fund) => [fund.key, fund.values]),
+        .map((fund) => [fund.key, fund]),
     );
 
     return newPortfolio.map((assetClass) => ({
       ...assetClass,
-      funds: assetClass.funds.map((fund) => ({
-        ...fund,
-        values: valuesByFundKey.get(fund.key) ?? fund.values,
-      })),
+      funds: assetClass.funds.map((fund) => {
+        const current = fundsByKey.get(fund.key);
+        return current ? { ...current, ticker: fund.ticker } : fund;
+      }),
     }));
   }
 
   function handleSubmit(values: { portfolio: AssetClass[] }) {
-    const portfolioWithPreservedValues = preserveFundValues(values.portfolio);
-    onPortfolioChange(portfolioWithPreservedValues);
-    form.setInitialValues({ portfolio: portfolioWithPreservedValues });
+    const portfolioWithPreservedHoldings = preserveFundHoldings(
+      values.portfolio,
+    );
+    onPortfolioChange(portfolioWithPreservedHoldings);
+    form.setInitialValues({ portfolio: portfolioWithPreservedHoldings });
     form.reset();
   }
 
@@ -86,7 +89,7 @@ export function useAssetClassForm({
     form.insertListItem("portfolio", {
       name: "",
       allocation: 0,
-      funds: [{ ticker: "", values: {}, key: randomId() }],
+      funds: [{ ticker: "", unit: "dollars", values: {}, key: randomId() }],
       key: randomId() as AssetClassId,
     });
     form.clearFieldError("portfolio");
@@ -99,6 +102,7 @@ export function useAssetClassForm({
   function addFund(assetClassIndex: number) {
     form.insertListItem(`portfolio.${assetClassIndex}.funds`, {
       ticker: "",
+      unit: "dollars",
       values: {},
       key: randomId(),
     });

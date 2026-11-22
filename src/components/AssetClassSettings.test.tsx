@@ -1,8 +1,13 @@
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithMantine, screen } from "../test/utils";
-import { AssetClass } from "../types";
-import { AccountId, AssetClassId, DollarAmount } from "../types/branded";
+import { AssetClass, ShareFund } from "../types";
+import {
+  AccountId,
+  AssetClassId,
+  DollarAmount,
+  ShareCount,
+} from "../types/branded";
 import { AssetClassSettings } from "./AssetClassSettings";
 
 const portfolio: AssetClass[] = [
@@ -12,6 +17,7 @@ const portfolio: AssetClass[] = [
     funds: [
       {
         ticker: "VTI",
+        unit: "dollars",
         values: { ["account-1" as AccountId]: 500 as DollarAmount },
         key: "fund-1",
       },
@@ -20,10 +26,22 @@ const portfolio: AssetClass[] = [
   },
 ];
 
-function renderAssetClassSettings(onPortfolioChange = vi.fn()) {
+const shareFund: ShareFund = {
+  ticker: "VXUS",
+  unit: "shares",
+  shares: { ["account-1" as AccountId]: 12.5 as ShareCount },
+  price: 71.25,
+  priceAsOf: "2026-11-20T21:00:00.000Z",
+  key: "fund-2",
+};
+
+function renderAssetClassSettings(
+  onPortfolioChange = vi.fn(),
+  initialPortfolio = portfolio,
+) {
   renderWithMantine(
     <AssetClassSettings
-      portfolio={portfolio}
+      portfolio={initialPortfolio}
       onPortfolioChange={onPortfolioChange}
     />,
   );
@@ -59,10 +77,29 @@ describe("AssetClassSettings", () => {
     await user.click(saveButton);
 
     const [[savedPortfolio]] = onPortfolioChange.mock.calls as [[AssetClass[]]];
-    expect(savedPortfolio[0].funds[0].values).toEqual(
-      portfolio[0].funds[0].values,
-    );
-    expect(savedPortfolio[0].funds[1].values).toEqual({});
+    expect(savedPortfolio[0].funds[0]).toEqual(portfolio[0].funds[0]);
+    expect(savedPortfolio[0].funds[1]).toEqual({
+      ticker: "VTI",
+      unit: "dollars",
+      values: {},
+      key: expect.any(String),
+    });
+  });
+
+  it("keeps a share fund's shares and price when its ticker is edited", async () => {
+    const user = userEvent.setup();
+    const { tickerInput, saveButton, onPortfolioChange } =
+      renderAssetClassSettings(vi.fn(), [
+        { ...portfolio[0], funds: [shareFund] },
+      ]);
+
+    await user.clear(tickerInput);
+    await user.type(tickerInput, "VEU");
+    await user.click(saveButton);
+
+    expect(onPortfolioChange).toHaveBeenCalledWith([
+      { ...portfolio[0], funds: [{ ...shareFund, ticker: "VEU" }] },
+    ]);
   });
 
   it("saves names with whitespace collapsed and tickers trimmed", async () => {

@@ -25,6 +25,7 @@ export function defaultAssetClasses(accounts: Account[]): AssetClass[] {
       funds: [
         {
           ticker: "VTI",
+          unit: "dollars",
           values: {
             [taxDeferred.key]: createDollarAmount(3730),
             [roth.key]: createDollarAmount(6927),
@@ -41,6 +42,7 @@ export function defaultAssetClasses(accounts: Account[]): AssetClass[] {
       funds: [
         {
           ticker: "VXUS",
+          unit: "dollars",
           values: {
             [taxDeferred.key]: createDollarAmount(17573),
           },
@@ -55,6 +57,7 @@ export function defaultAssetClasses(accounts: Account[]): AssetClass[] {
       funds: [
         {
           ticker: "BND",
+          unit: "dollars",
           values: {
             [taxDeferred.key]: createDollarAmount(5090),
           },

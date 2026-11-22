@@ -41,6 +41,54 @@ Object.defineProperty(document, "body", {
   writable: true,
 });
 
+const savedAccounts = [
+  { name: "401k", key: "acct-1" },
+  { name: "Roth IRA", key: "acct-2" },
+];
+
+// Saved data holding a single VTI fund with the given fields.
+function storedFund(fields: Record<string, unknown>) {
+  return {
+    accounts: savedAccounts,
+    portfolio: [
+      {
+        name: "US Total Stock Market",
+        allocation: 100,
+        key: "ac-1",
+        funds: [{ ticker: "VTI", key: "f-1", ...fields }],
+      },
+    ],
+    toInvest: 0,
+    version: "1.0.0",
+    lastSaved: "2024-01-01T00:00:00.000Z",
+  };
+}
+
+// Saved data from before funds had a unit, when every fund held dollars.
+function storedData(values: Record<string, number>) {
+  return storedFund({ values });
+}
+
+function dollarFund(values: Record<string, number>) {
+  return { ticker: "VTI", key: "f-1", unit: "dollars", values };
+}
+
+function shareFund(shares: Record<string, number>) {
+  return {
+    ticker: "VTI",
+    key: "f-1",
+    unit: "shares",
+    shares,
+    price: 250.12,
+    priceAsOf: "2026-11-20T21:00:00.000Z",
+  };
+}
+
+function loadStored(data: unknown) {
+  (localStorage.getItem as any).mockReturnValue(JSON.stringify(data));
+  return loadPortfolioData();
+}
+
 describe("Storage Utilities", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -290,10 +338,9 @@ describe("Storage Utilities", () => {
 
       const result = await importPortfolioData(mockFile);
 
-      expect(result.portfolio[0].funds[0].values).toEqual({
-        "acct-1": 1000,
-        "acct-2": 500,
-      });
+      expect(result.portfolio[0].funds[0]).toEqual(
+        dollarFund({ "acct-1": 1000, "acct-2": 500 }),
+      );
     });
 
     it("should reject invalid JSON files", async () => {
@@ -344,33 +391,74 @@ describe("Storage Utilities", () => {
     });
   });
 
-  describe("balance key migration", () => {
-    const accounts = [
-      { name: "401k", key: "acct-1" },
-      { name: "Roth IRA", key: "acct-2" },
-    ];
+  describe("fund units", () => {
+    it("loads funds saved without a unit as dollar funds", () => {
+      const result = loadStored(storedData({ "acct-1": 1000 }));
 
-    function portfolioWithBalances(values: Record<string, number>) {
-      return [
-        {
-          name: "US Total Stock Market",
-          allocation: 100,
-          key: "ac-1",
-          funds: [{ ticker: "VTI", key: "f-1", values }],
-        },
+      expect(result?.portfolio[0].funds[0]).toEqual(
+        dollarFund({ "acct-1": 1000 }),
+      );
+    });
+
+    it("imports funds saved without a unit as dollar funds", async () => {
+      const mockFile = new File(
+        [JSON.stringify(storedData({ "acct-1": 1000 }))],
+        "portfolio.json",
+        { type: "application/json" },
+      );
+
+      const result = await importPortfolioData(mockFile);
+
+      expect(result.portfolio[0].funds[0]).toEqual(
+        dollarFund({ "acct-1": 1000 }),
+      );
+    });
+
+    it("leaves funds that already have a unit untouched (idempotent)", () => {
+      const result = loadStored(
+        storedFund(dollarFund({ "acct-1": 1000, "acct-2": 500 })),
+      );
+
+      expect(result?.portfolio[0].funds[0]).toEqual(
+        dollarFund({ "acct-1": 1000, "acct-2": 500 }),
+      );
+    });
+
+    it("loads share funds, dropping shares held in deleted accounts", () => {
+      const result = loadStored(
+        storedFund(shareFund({ "acct-1": 10.5, "deleted-acct": 3 })),
+      );
+
+      expect(result?.portfolio[0].funds[0]).toEqual(
+        shareFund({ "acct-1": 10.5 }),
+      );
+    });
+
+    it("accepts an unpriced share fund", () => {
+      const unpriced = { ...shareFund({}), price: null, priceAsOf: null };
+
+      expect(loadStored(storedFund(unpriced))?.portfolio[0].funds[0]).toEqual(
+        unpriced,
+      );
+    });
+
+    it("rejects funds with an unknown unit or malformed holdings", () => {
+      const invalidFunds = [
+        { unit: "euros", values: {} },
+        { unit: "dollars" },
+        { ...shareFund({}), shares: undefined },
+        { ...shareFund({}), price: "250.12" },
+        { ...shareFund({}), price: undefined },
+        { ...shareFund({}), priceAsOf: 1763672400 },
       ];
-    }
 
-    function storedData(values: Record<string, number>) {
-      return {
-        accounts,
-        portfolio: portfolioWithBalances(values),
-        toInvest: 0,
-        version: "1.0.0",
-        lastSaved: "2024-01-01T00:00:00.000Z",
-      };
-    }
+      for (const fields of invalidFunds) {
+        expect(loadStored(storedFund(fields))).toBe(null);
+      }
+    });
+  });
 
+  describe("balance key migration", () => {
     it("remaps name-keyed balances onto account ids when loading", () => {
       (localStorage.getItem as any).mockReturnValue(
         JSON.stringify(storedData({ "401k": 1000, "Roth IRA": 500 })),
@@ -378,10 +466,9 @@ describe("Storage Utilities", () => {
 
       const result = loadPortfolioData();
 
-      expect(result?.portfolio[0].funds[0].values).toEqual({
-        "acct-1": 1000,
-        "acct-2": 500,
-      });
+      expect(result?.portfolio[0].funds[0]).toEqual(
+        dollarFund({ "acct-1": 1000, "acct-2": 500 }),
+      );
     });
 
     it("leaves already id-keyed balances untouched (idempotent)", () => {
@@ -391,10 +478,9 @@ describe("Storage Utilities", () => {
 
       const result = loadPortfolioData();
 
-      expect(result?.portfolio[0].funds[0].values).toEqual({
-        "acct-1": 1000,
-        "acct-2": 500,
-      });
+      expect(result?.portfolio[0].funds[0]).toEqual(
+        dollarFund({ "acct-1": 1000, "acct-2": 500 }),
+      );
     });
 
     it("drops balances held in accounts that no longer exist when loading", () => {
@@ -404,7 +490,9 @@ describe("Storage Utilities", () => {
 
       const result = loadPortfolioData();
 
-      expect(result?.portfolio[0].funds[0].values).toEqual({ "acct-1": 1000 });
+      expect(result?.portfolio[0].funds[0]).toEqual(
+        dollarFund({ "acct-1": 1000 }),
+      );
     });
 
     it("drops balances held in accounts that no longer exist on import", async () => {
@@ -416,7 +504,9 @@ describe("Storage Utilities", () => {
 
       const result = await importPortfolioData(mockFile);
 
-      expect(result.portfolio[0].funds[0].values).toEqual({ "acct-2": 500 });
+      expect(result.portfolio[0].funds[0]).toEqual(
+        dollarFund({ "acct-2": 500 }),
+      );
     });
   });
 

@@ -87,7 +87,8 @@ export function usePortfolioData() {
       portfolio: prev.portfolio.map((assetClass) => ({
         ...assetClass,
         funds: assetClass.funds.map((fund) => {
-          if (fund.key !== fundKey) return fund;
+          // Share funds hold share counts, not dollar balances.
+          if (fund.key !== fundKey || fund.unit !== "dollars") return fund;
 
           return {
             ...fund,

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { STORAGE } from "../constants";
+import { fundDollarValues } from "../portfolio";
 import { act, createMockPortfolioData, renderHook } from "../test/utils";
 import { usePortfolioData } from "./usePortfolioData";
 
@@ -14,7 +15,7 @@ type Portfolio = ReturnType<typeof renderPortfolio>;
 function planSaleInFirstAccount(result: Portfolio) {
   const fund = result.current.portfolio[0].funds[0];
   const account = result.current.accounts[0].key;
-  const balance: number = fund.values[account] ?? 0;
+  const balance = fundDollarValues(fund)[account] ?? 0;
   act(() => {
     result.current.enterPlanningMode();
   });
@@ -104,7 +105,11 @@ describe("usePortfolioData", () => {
         result.current.accounts,
         result.current.portfolio.map((assetClass) => ({
           ...assetClass,
-          funds: assetClass.funds.map((fund) => ({ ...fund, values: {} })),
+          funds: assetClass.funds.map((fund) => ({
+            ...fund,
+            unit: "dollars" as const,
+            values: {},
+          })),
         })),
         result.current.toInvest,
       );
@@ -141,16 +146,18 @@ describe("usePortfolioData", () => {
       ]);
     });
     const account = result.current.accounts[0].key;
-    const secondBalanceBefore = second.funds[0].values[account];
+    const secondBalanceBefore = fundDollarValues(second.funds[0])[account];
 
     act(() => {
       result.current.updateFundBalance(first.funds[0].key, account, 999);
     });
 
-    expect(result.current.portfolio[0].funds[0].values[account]).toBe(999);
-    expect(result.current.portfolio[1].funds[0].values[account]).toBe(
-      secondBalanceBefore,
-    );
+    expect(
+      fundDollarValues(result.current.portfolio[0].funds[0]),
+    ).toHaveProperty(account, 999);
+    expect(
+      fundDollarValues(result.current.portfolio[1].funds[0]),
+    ).toHaveProperty(account, secondBalanceBefore);
   });
 
   it("applies a planned change to an asset class whose name contains |", () => {
@@ -165,7 +172,7 @@ describe("usePortfolioData", () => {
     });
     const fund = result.current.portfolio[0].funds[0];
     const account = result.current.accounts[0].key;
-    const balanceBefore = fund.values[account];
+    const balanceBefore = fundDollarValues(fund)[account] ?? 0;
 
     act(() => {
       result.current.enterPlanningMode();
@@ -177,9 +184,9 @@ describe("usePortfolioData", () => {
       result.current.applyPendingChanges();
     });
 
-    expect(result.current.portfolio[0].funds[0].values[account]).toBe(
-      balanceBefore + 100,
-    );
+    expect(
+      fundDollarValues(result.current.portfolio[0].funds[0]),
+    ).toHaveProperty(account, balanceBefore + 100);
     expectPlanningEnded(result);
   });
 
@@ -198,6 +205,28 @@ describe("usePortfolioData", () => {
     });
 
     expect(result.current.pendingBalance).toBe(110);
+  });
+
+  it("doesn't write a dollar balance into a share fund", () => {
+    const saved = createMockPortfolioData();
+    const account = saved.accounts[0].key;
+    const shareFund = {
+      ticker: "VTI",
+      key: "vti-shares",
+      unit: "shares",
+      shares: { [account]: 10 },
+      price: 250,
+      priceAsOf: null,
+    };
+    saved.portfolio[0].funds = [shareFund as any];
+    vi.mocked(localStorage.getItem).mockReturnValueOnce(JSON.stringify(saved));
+    const result = renderPortfolio();
+
+    act(() => {
+      result.current.updateFundBalance("vti-shares", account, 999);
+    });
+
+    expect(result.current.portfolio[0].funds[0]).toEqual(shareFund);
   });
 
   it("uses saved data from the first render", () => {

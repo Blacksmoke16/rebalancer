@@ -1,7 +1,21 @@
 import { STORAGE } from "./constants";
 import { withoutOrphanedBalances } from "./portfolio";
-import { Account, AccountBalances, AssetClass, PortfolioData } from "./types";
+import {
+  Account,
+  AccountBalances,
+  AssetClass,
+  DollarFund,
+  Fund,
+  PortfolioData,
+} from "./types";
 import { AccountId, DollarAmount } from "./types/branded";
+
+// Data as saved, which may include funds saved before funds had a unit. Those
+// have no `unit` field and hold dollars.
+type SavedFund = Fund | Omit<DollarFund, "unit">;
+type SavedPortfolioData = Omit<PortfolioData, "portfolio"> & {
+  portfolio: (Omit<AssetClass, "funds"> & { funds: SavedFund[] })[];
+};
 
 export function savePortfolioData(
   accounts: Account[],
@@ -37,7 +51,7 @@ export function loadPortfolioData(): PortfolioData | null {
       return null;
     }
 
-    const data = JSON.parse(stored) as PortfolioData;
+    const data: unknown = JSON.parse(stored);
 
     // Validate data structure
     if (!isValidPortfolioData(data)) {
@@ -54,14 +68,30 @@ export function loadPortfolioData(): PortfolioData | null {
   }
 }
 
-// Brings stored balances in line with the stored accounts. Name-keyed balances
-// are remapped first so they aren't mistaken for balances of deleted accounts,
-// which are then dropped.
-function normalizeBalances(data: PortfolioData): PortfolioData {
-  const migrated = migrateBalanceKeys(data);
+// Brings stored funds in line with the current format and the stored accounts.
+// Funds saved without a unit become dollar funds. Name-keyed balances are then
+// remapped so they aren't mistaken for balances of deleted accounts, which are
+// dropped last.
+function normalizeBalances(data: SavedPortfolioData): PortfolioData {
+  const migrated = migrateBalanceKeys(withFundUnits(data));
   return {
     ...migrated,
     portfolio: withoutOrphanedBalances(migrated.portfolio, migrated.accounts),
+  };
+}
+
+// Funds saved before funds had a unit all held dollars. This marks them as
+// dollar funds, leaving funds that already have a unit untouched so it is safe
+// to re-run.
+function withFundUnits(data: SavedPortfolioData): PortfolioData {
+  return {
+    ...data,
+    portfolio: data.portfolio.map((assetClass) => ({
+      ...assetClass,
+      funds: assetClass.funds.map((fund): Fund =>
+        "unit" in fund ? fund : { ...fund, unit: "dollars" },
+      ),
+    })),
   };
 }
 
@@ -80,6 +110,9 @@ function migrateBalanceKeys(data: PortfolioData): PortfolioData {
   const portfolio = data.portfolio.map((assetClass) => ({
     ...assetClass,
     funds: assetClass.funds.map((fund) => {
+      // Share funds were never saved with name-keyed holdings.
+      if (fund.unit === "shares") return fund;
+
       const values: AccountBalances = {};
       for (const [key, value] of Object.entries(fund.values)) {
         const idForName = idByName.get(key);
@@ -126,7 +159,7 @@ export function importPortfolioData(file: File): Promise<PortfolioData> {
     reader.onload = (e) => {
       try {
         const content = e.target?.result as string;
-        const data = JSON.parse(content) as PortfolioData;
+        const data: unknown = JSON.parse(content);
 
         if (!isValidPortfolioData(data)) {
           reject(new Error("Invalid portfolio data format"));
@@ -155,7 +188,7 @@ export function clearPortfolioData(): void {
   }
 }
 
-function isValidPortfolioData(data: unknown): data is PortfolioData {
+function isValidPortfolioData(data: unknown): data is SavedPortfolioData {
   if (!data || typeof data !== "object") {
     return false;
   }
@@ -201,11 +234,33 @@ function isValidPortfolioData(data: unknown): data is PortfolioData {
     for (const fund of ac.funds) {
       if (!fund || typeof fund !== "object") return false;
       const f = fund as Record<string, unknown>;
-      if (!f.ticker || !f.key || !f.values || typeof f.values !== "object") {
+      if (!f.ticker || !f.key || !hasValidHoldings(f)) {
         return false;
       }
     }
   }
 
   return true;
+}
+
+// Dollar funds, including those saved without a unit, hold a balance per
+// account. Share funds hold a share count per account and a nullable price.
+function hasValidHoldings(fund: Record<string, unknown>): boolean {
+  switch (fund.unit) {
+    case undefined:
+    case "dollars":
+      return isObject(fund.values);
+    case "shares":
+      return (
+        isObject(fund.shares) &&
+        (fund.price === null || typeof fund.price === "number") &&
+        (fund.priceAsOf === null || typeof fund.priceAsOf === "string")
+      );
+    default:
+      return false;
+  }
+}
+
+function isObject(value: unknown): boolean {
+  return typeof value === "object" && value !== null;
 }
