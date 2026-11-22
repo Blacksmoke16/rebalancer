@@ -19,16 +19,16 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
     setToInvest,
     updateFundBalance,
     updatePendingChange,
+    updateAccounts,
+    updatePortfolio,
     enterPlanningMode,
     exitPlanningMode,
     applyPendingChanges,
     resetToDefaults,
     handleDataImport,
-    accountList,
-    portfolioList,
   } = portfolioData;
-  // Pending changes only exist in planning mode; entering, exiting, and
-  // applying all clear them.
+  // Pending changes only exist in planning mode; they're cleared whenever
+  // planning mode starts or ends.
   const analysis = useMemo(
     () =>
       analyzePortfolio(withPendingChanges(portfolio, pendingChanges), toInvest),
@@ -46,14 +46,14 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
       analysis,
       updateFundBalance,
       updatePendingChange,
+      updateAccounts,
+      updatePortfolio,
       enterPlanningMode,
       exitPlanningMode,
       applyPendingChanges,
       setToInvest,
       resetToDefaults,
       handleDataImport,
-      accountList,
-      portfolioList,
     }),
     [
       accounts,
@@ -65,14 +65,14 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
       analysis,
       updateFundBalance,
       updatePendingChange,
+      updateAccounts,
+      updatePortfolio,
       enterPlanningMode,
       exitPlanningMode,
       applyPendingChanges,
       setToInvest,
       resetToDefaults,
       handleDataImport,
-      accountList,
-      portfolioList,
     ],
   );
 

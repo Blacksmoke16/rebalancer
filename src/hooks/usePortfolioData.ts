@@ -1,7 +1,7 @@
 import { useListState } from "@mantine/hooks";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { STORAGE } from "../constants";
-import { withPendingChanges } from "../portfolio";
+import { withoutOrphanedBalances, withPendingChanges } from "../portfolio";
 import { loadPortfolioData, savePortfolioData } from "../storage";
 import { Account, AssetClass, PendingChanges } from "../types";
 import { AccountId, createDollarAmount, DollarAmount } from "../types/branded";
@@ -24,6 +24,8 @@ interface UsePortfolioDataReturn {
     accountId: AccountId,
     changeAmount: number,
   ) => void;
+  updateAccounts: (newAccounts: Account[]) => void;
+  updatePortfolio: (newPortfolio: AssetClass[]) => void;
   enterPlanningMode: () => void;
   exitPlanningMode: () => void;
   applyPendingChanges: () => void;
@@ -34,8 +36,6 @@ interface UsePortfolioDataReturn {
   ) => void;
   resetToDefaults: () => void;
   setToInvest: (value: DollarAmount) => void;
-  accountList: ReturnType<typeof useListState<Account>>[1];
-  portfolioList: ReturnType<typeof useListState<AssetClass>>[1];
 }
 
 export function usePortfolioData(): UsePortfolioDataReturn {
@@ -59,6 +59,13 @@ export function usePortfolioData(): UsePortfolioDataReturn {
       .flatMap((changes) => Object.values(changes))
       .reduce((sum, amt) => sum + amt, 0);
   }, [pendingChanges]);
+
+  // Pending changes are planned against the current accounts, funds, and
+  // balances, so every action that replaces those also ends planning mode.
+  const exitPlanningMode = useCallback((): void => {
+    setPlanningMode(false);
+    setPendingChanges({});
+  }, []);
 
   // Debounced save function to avoid excessive localStorage writes
   const debouncedSave = useCallback(() => {
@@ -115,6 +122,26 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     [portfolioList],
   );
 
+  // Balances held in accounts that are no longer in the list are dropped.
+  const updateAccounts = useCallback(
+    (newAccounts: Account[]): void => {
+      accountList.setState(newAccounts);
+      portfolioList.setState((prev) =>
+        withoutOrphanedBalances(prev, newAccounts),
+      );
+      exitPlanningMode();
+    },
+    [accountList, portfolioList, exitPlanningMode],
+  );
+
+  const updatePortfolio = useCallback(
+    (newPortfolio: AssetClass[]): void => {
+      portfolioList.setState(newPortfolio);
+      exitPlanningMode();
+    },
+    [portfolioList, exitPlanningMode],
+  );
+
   const handleDataImport = useCallback(
     (
       newAccounts: Account[],
@@ -124,10 +151,11 @@ export function usePortfolioData(): UsePortfolioDataReturn {
       accountList.setState(newAccounts);
       portfolioList.setState(newPortfolio);
       setToInvest(newToInvest);
+      exitPlanningMode();
       // Immediately save the imported data to localStorage
       savePortfolioData(newAccounts, newPortfolio, newToInvest);
     },
-    [accountList, portfolioList],
+    [accountList, portfolioList, exitPlanningMode],
   );
 
   const resetToDefaults = useCallback((): void => {
@@ -138,6 +166,7 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     accountList.setState(defaultAccountsList);
     portfolioList.setState(defaultPortfolioList);
     setToInvest(defaultToInvestValue);
+    exitPlanningMode();
 
     // Save the reset state immediately
     savePortfolioData(
@@ -145,7 +174,7 @@ export function usePortfolioData(): UsePortfolioDataReturn {
       defaultPortfolioList,
       defaultToInvestValue,
     );
-  }, [accountList, portfolioList]);
+  }, [accountList, portfolioList, exitPlanningMode]);
 
   const updatePendingChange = useCallback(
     (fundKey: string, accountId: AccountId, changeAmount: number): void => {
@@ -159,11 +188,6 @@ export function usePortfolioData(): UsePortfolioDataReturn {
 
   const enterPlanningMode = useCallback((): void => {
     setPlanningMode(true);
-    setPendingChanges({});
-  }, []);
-
-  const exitPlanningMode = useCallback((): void => {
-    setPlanningMode(false);
     setPendingChanges({});
   }, []);
 
@@ -187,15 +211,13 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     // Actions
     updateFundBalance,
     updatePendingChange,
+    updateAccounts,
+    updatePortfolio,
     enterPlanningMode,
     exitPlanningMode,
     applyPendingChanges,
     handleDataImport,
     resetToDefaults,
     setToInvest,
-
-    // List state handlers
-    accountList,
-    portfolioList,
   };
 }

@@ -396,6 +396,28 @@ describe("Storage Utilities", () => {
         "acct-2": 500,
       });
     });
+
+    it("drops balances held in accounts that no longer exist when loading", () => {
+      (localStorage.getItem as any).mockReturnValue(
+        JSON.stringify(storedData({ "acct-1": 1000, "deleted-acct": 700 })),
+      );
+
+      const result = loadPortfolioData();
+
+      expect(result?.portfolio[0].funds[0].values).toEqual({ "acct-1": 1000 });
+    });
+
+    it("drops balances held in accounts that no longer exist on import", async () => {
+      const mockFile = new File(
+        [JSON.stringify(storedData({ "Roth IRA": 500, "deleted-acct": 700 }))],
+        "portfolio.json",
+        { type: "application/json" },
+      );
+
+      const result = await importPortfolioData(mockFile);
+
+      expect(result.portfolio[0].funds[0].values).toEqual({ "acct-2": 500 });
+    });
   });
 
   describe("Data Validation", () => {
