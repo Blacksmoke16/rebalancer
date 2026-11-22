@@ -21,6 +21,7 @@ import {
 import { AccountsSettings } from "./AccountsSettings";
 import { AssetClassSettings } from "./AssetClassSettings";
 import { DataManagement } from "./DataManagement";
+import { PriceDataSettings } from "./PriceDataSettings";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { Homepage } from "./Homepage";
 import { PortfolioInputTable } from "./PortfolioInputTable";
@@ -30,6 +31,7 @@ import {
   PlanningModeAlert,
 } from "./ui/PlanningModeControls";
 import { PortfolioSummaryCards } from "./ui/PortfolioSummaryCards";
+import { PricesCallout } from "./ui/PricesCallout";
 import { UnpricedFundsAlert } from "./ui/UnpricedFundsAlert";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
 
@@ -69,6 +71,11 @@ export function AppContent() {
             <PlanningModeToggle />
           </Group>
           <PlanningModeAlert />
+          <PricesCallout
+            onOpenSettings={() => {
+              handleTabChange("settings");
+            }}
+          />
           <UnpricedFundsAlert />
           <PortfolioInputTable />
           <Title order={2}>Rebalancing Analysis</Title>
@@ -89,6 +96,7 @@ export function AppContent() {
             portfolio={portfolio}
             onPortfolioChange={updatePortfolio}
           />
+          <PriceDataSettings />
           <DataManagement onDataImported={handleDataImport} />
         </Stack>
       );

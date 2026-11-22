@@ -30,3 +30,11 @@ export function formatDate(isoTimestamp: string): string {
     new Date(isoTimestamp),
   );
 }
+
+// A date and time in the user's locale, e.g. "Nov 22, 2026, 9:14 AM".
+export function formatDateTime(isoTimestamp: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(isoTimestamp));
+}

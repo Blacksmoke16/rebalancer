@@ -103,6 +103,7 @@ describe("Storage Utilities", () => {
         mockData.accounts,
         mockData.portfolio,
         mockData.toInvest,
+        mockData.pricesUpdatedAt,
       );
 
       expect(localStorage.setItem).toHaveBeenCalledWith(
@@ -117,9 +118,26 @@ describe("Storage Utilities", () => {
         accounts: mockData.accounts,
         portfolio: mockData.portfolio,
         toInvest: mockData.toInvest,
+        pricesUpdatedAt: null,
         version: expect.any(String),
         lastSaved: expect.any(String),
       });
+    });
+
+    it("should save when prices were last refreshed", () => {
+      const mockData = createMockPortfolioData();
+
+      savePortfolioData(
+        mockData.accounts,
+        mockData.portfolio,
+        mockData.toInvest,
+        "2026-11-22T14:14:00.000Z",
+      );
+
+      const savedData = JSON.parse(
+        (localStorage.setItem as any).mock.calls[0][1],
+      );
+      expect(savedData.pricesUpdatedAt).toBe("2026-11-22T14:14:00.000Z");
     });
 
     it("should handle localStorage errors gracefully", () => {
@@ -136,6 +154,7 @@ describe("Storage Utilities", () => {
           mockData.accounts,
           mockData.portfolio,
           mockData.toInvest,
+          mockData.pricesUpdatedAt,
         );
       }).not.toThrow();
 
@@ -161,6 +180,7 @@ describe("Storage Utilities", () => {
         mockData.accounts,
         mockData.portfolio,
         mockData.toInvest,
+        mockData.pricesUpdatedAt,
       );
 
       expect((global as any).alert).toHaveBeenCalledWith(
@@ -247,6 +267,7 @@ describe("Storage Utilities", () => {
         mockData.accounts,
         mockData.portfolio,
         mockData.toInvest,
+        mockData.pricesUpdatedAt,
       );
 
       // Check that a blob URL was created
@@ -260,6 +281,31 @@ describe("Storage Utilities", () => {
       expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
     });
 
+    it("should export when prices were refreshed, and nothing beyond the portfolio data", async () => {
+      const mockData = createMockPortfolioData();
+      mockCreateObjectURL.mockReturnValue("blob:mock-url");
+
+      exportPortfolioData(
+        mockData.accounts,
+        mockData.portfolio,
+        mockData.toInvest,
+        "2026-11-22T14:14:00.000Z",
+      );
+
+      const [[blob]] = mockCreateObjectURL.mock.calls as [[Blob]];
+      const exported = JSON.parse(await blob.text());
+      expect(exported.pricesUpdatedAt).toBe("2026-11-22T14:14:00.000Z");
+      // In particular, the API key, which is stored separately, isn't exported.
+      expect(Object.keys(exported).sort()).toEqual([
+        "accounts",
+        "lastSaved",
+        "portfolio",
+        "pricesUpdatedAt",
+        "toInvest",
+        "version",
+      ]);
+    });
+
     it("should use correct filename format", () => {
       const mockData = createMockPortfolioData();
       mockCreateObjectURL.mockReturnValue("blob:mock-url");
@@ -268,6 +314,7 @@ describe("Storage Utilities", () => {
         mockData.accounts,
         mockData.portfolio,
         mockData.toInvest,
+        mockData.pricesUpdatedAt,
       );
 
       const linkElement = (document.createElement as any).mock.results.find(
@@ -291,6 +338,7 @@ describe("Storage Utilities", () => {
           mockData.accounts,
           mockData.portfolio,
           mockData.toInvest,
+          mockData.pricesUpdatedAt,
         );
       }).toThrow("Blob creation failed");
     });
@@ -388,6 +436,41 @@ describe("Storage Utilities", () => {
       await expect(importPortfolioData(mockFile)).rejects.toThrow(
         "Failed to read file",
       );
+    });
+  });
+
+  describe("prices updated at", () => {
+    it("loads as null from data saved before prices could be refreshed", () => {
+      expect(loadStored(storedData({ "acct-1": 1000 }))?.pricesUpdatedAt).toBe(
+        null,
+      );
+    });
+
+    it("imports as null from data saved before prices could be refreshed", async () => {
+      const mockFile = new File(
+        [JSON.stringify(storedData({ "acct-1": 1000 }))],
+        "portfolio.json",
+        { type: "application/json" },
+      );
+
+      expect((await importPortfolioData(mockFile)).pricesUpdatedAt).toBe(null);
+    });
+
+    it("loads the time prices were last refreshed", () => {
+      const saved = {
+        ...storedData({ "acct-1": 1000 }),
+        pricesUpdatedAt: "2026-11-22T14:14:00.000Z",
+      };
+
+      expect(loadStored(saved)?.pricesUpdatedAt).toBe(
+        "2026-11-22T14:14:00.000Z",
+      );
+    });
+
+    it("rejects a time that isn't a string or null", () => {
+      const saved = { ...storedData({ "acct-1": 1000 }), pricesUpdatedAt: 5 };
+
+      expect(loadStored(saved)).toBe(null);
     });
   });
 

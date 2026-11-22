@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatDate,
+  formatDateTime,
   formatDollars,
   formatPrice,
   formatShareChange,
@@ -38,6 +39,15 @@ describe("formatShareChange", () => {
   it("signs buys and sells", () => {
     expect(formatShareChange(4)).toBe("+4");
     expect(formatShareChange(-3.3653041)).toBe("-3.365304");
+  });
+});
+
+describe("formatDateTime", () => {
+  it("formats an ISO timestamp as a medium date and short time", () => {
+    // The hour depends on the local time zone; noon UTC keeps the date.
+    expect(formatDateTime("2026-11-22T12:14:00.000Z")).toMatch(
+      /^Nov 22, 2026, \d{1,2}:\d{2}\s(AM|PM)$/,
+    );
   });
 });
 

@@ -11,22 +11,30 @@ import {
 import { AccountId, DollarAmount } from "./types/branded";
 
 // Data as saved, which may include funds saved before funds had a unit. Those
-// have no `unit` field and hold dollars.
+// have no `unit` field and hold dollars. Data saved before prices could be
+// refreshed has no `pricesUpdatedAt`.
 type SavedFund = Fund | Omit<DollarFund, "unit">;
-type SavedPortfolioData = Omit<PortfolioData, "portfolio"> & {
-  portfolio: (Omit<AssetClass, "funds"> & { funds: SavedFund[] })[];
+type SavedAssetClass = Omit<AssetClass, "funds"> & { funds: SavedFund[] };
+type SavedPortfolioData = Omit<
+  PortfolioData,
+  "portfolio" | "pricesUpdatedAt"
+> & {
+  portfolio: SavedAssetClass[];
+  pricesUpdatedAt?: string | null;
 };
 
 export function savePortfolioData(
   accounts: Account[],
   portfolio: AssetClass[],
   toInvest: DollarAmount,
+  pricesUpdatedAt: string | null,
 ): void {
   try {
     const data: PortfolioData = {
       accounts,
       portfolio,
       toInvest,
+      pricesUpdatedAt,
       version: STORAGE.VERSION,
       lastSaved: new Date().toISOString(),
     };
@@ -61,19 +69,24 @@ export function loadPortfolioData(): PortfolioData | null {
       return null;
     }
 
-    return normalizeBalances(data);
+    return normalizeSavedData(data);
   } catch {
     console.error("Failed to load portfolio data from localStorage");
     return null;
   }
 }
 
-// Brings stored funds in line with the current format and the stored accounts.
-// Funds saved without a unit become dollar funds. Name-keyed balances are then
-// remapped so they aren't mistaken for balances of deleted accounts, which are
-// dropped last.
-function normalizeBalances(data: SavedPortfolioData): PortfolioData {
-  const migrated = migrateBalanceKeys(withFundUnits(data));
+// Brings saved data in line with the current format and the stored accounts.
+// Funds saved without a unit become dollar funds, and data saved without
+// `pricesUpdatedAt` was never refreshed. Name-keyed balances are then remapped
+// so they aren't mistaken for balances of deleted accounts, which are dropped
+// last.
+function normalizeSavedData(data: SavedPortfolioData): PortfolioData {
+  const migrated = migrateBalanceKeys({
+    ...data,
+    portfolio: withFundUnits(data.portfolio),
+    pricesUpdatedAt: data.pricesUpdatedAt ?? null,
+  });
   return {
     ...migrated,
     portfolio: withoutOrphanedBalances(migrated.portfolio, migrated.accounts),
@@ -83,16 +96,13 @@ function normalizeBalances(data: SavedPortfolioData): PortfolioData {
 // Funds saved before funds had a unit all held dollars. This marks them as
 // dollar funds, leaving funds that already have a unit untouched so it is safe
 // to re-run.
-function withFundUnits(data: SavedPortfolioData): PortfolioData {
-  return {
-    ...data,
-    portfolio: data.portfolio.map((assetClass) => ({
-      ...assetClass,
-      funds: assetClass.funds.map((fund): Fund =>
-        "unit" in fund ? fund : { ...fund, unit: "dollars" },
-      ),
-    })),
-  };
+function withFundUnits(portfolio: SavedAssetClass[]): AssetClass[] {
+  return portfolio.map((assetClass) => ({
+    ...assetClass,
+    funds: assetClass.funds.map((fund): Fund =>
+      "unit" in fund ? fund : { ...fund, unit: "dollars" },
+    ),
+  }));
 }
 
 // Holdings are keyed by account id. Data saved by earlier versions keyed them
@@ -127,15 +137,18 @@ function migrateBalanceKeys(data: PortfolioData): PortfolioData {
   return { ...data, portfolio };
 }
 
+// The API key is stored apart from the portfolio data, so it's never exported.
 export function exportPortfolioData(
   accounts: Account[],
   portfolio: AssetClass[],
   toInvest: DollarAmount,
+  pricesUpdatedAt: string | null,
 ): void {
   const data: PortfolioData = {
     accounts,
     portfolio,
     toInvest,
+    pricesUpdatedAt,
     version: STORAGE.VERSION,
     lastSaved: new Date().toISOString(),
   };
@@ -166,7 +179,7 @@ export function importPortfolioData(file: File): Promise<PortfolioData> {
           return;
         }
 
-        resolve(normalizeBalances(data));
+        resolve(normalizeSavedData(data));
       } catch {
         reject(new Error("Failed to parse JSON file"));
       }
@@ -201,6 +214,14 @@ function isValidPortfolioData(data: unknown): data is SavedPortfolioData {
   }
 
   if (typeof obj.toInvest !== "number" || typeof obj.version !== "string") {
+    return false;
+  }
+
+  if (
+    obj.pricesUpdatedAt !== undefined &&
+    obj.pricesUpdatedAt !== null &&
+    typeof obj.pricesUpdatedAt !== "string"
+  ) {
     return false;
   }
 
