@@ -30,7 +30,10 @@ export const PlanningModeAlert = memo(function PlanningModeAlert() {
     return null;
   }
 
-  const hasChanges = Object.keys(pendingChanges).length > 0;
+  // Clearing an input records a change of zero, which isn't a change.
+  const hasChanges = Object.values(pendingChanges).some((changes) =>
+    Object.values(changes).some((amount) => amount !== 0),
+  );
   const isValid = pendingBalance >= 0;
 
   // Determine alert state

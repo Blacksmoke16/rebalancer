@@ -26,6 +26,10 @@ export interface AssetClass {
   key: AssetClassId;
 }
 
+// Planned buys (positive) and sells (negative) in dollars, keyed by fund key
+// and then by account id.
+export type PendingChanges = Record<string, Record<AccountId, number>>;
+
 export interface PortfolioData {
   accounts: Account[];
   portfolio: AssetClass[];

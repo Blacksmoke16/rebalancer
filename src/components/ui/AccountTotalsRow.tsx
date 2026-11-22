@@ -10,9 +10,7 @@ interface AccountTotalsRowProps {
 
 export const AccountTotalsRow = memo<AccountTotalsRowProps>(
   function AccountTotalsRow({ accounts }) {
-    const {
-      calculations: { totalForAccount, totalDollars },
-    } = usePortfolioContext();
+    const { analysis } = usePortfolioContext();
 
     return (
       <Fragment>
@@ -24,12 +22,14 @@ export const AccountTotalsRow = memo<AccountTotalsRowProps>(
           {accounts.map((account) => (
             <TableTd key={`${account.key}-total`}>
               <Center>
-                <CurrencyCell value={totalForAccount(account.key)} />
+                <CurrencyCell
+                  value={analysis.accountTotals[account.key] ?? 0}
+                />
               </Center>
             </TableTd>
           ))}
           <TableTd>
-            <CurrencyCell value={totalDollars()} align="right" />
+            <CurrencyCell value={analysis.total} align="right" />
           </TableTd>
         </TableTr>
       </Fragment>

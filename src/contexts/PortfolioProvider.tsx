@@ -1,6 +1,6 @@
 import { ReactNode, useMemo } from "react";
-import { usePortfolioCalculations } from "../hooks/usePortfolioCalculations";
 import { usePortfolioData } from "../hooks/usePortfolioData";
+import { analyzePortfolio, withPendingChanges } from "../portfolio";
 import { PortfolioContext, PortfolioContextValue } from "./PortfolioContext";
 
 interface PortfolioProviderProps {
@@ -17,7 +17,7 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
     pendingChanges,
     pendingBalance,
     setToInvest,
-    updateAssetAccountValue,
+    updateFundBalance,
     updatePendingChange,
     enterPlanningMode,
     exitPlanningMode,
@@ -27,11 +27,12 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
     accountList,
     portfolioList,
   } = portfolioData;
-  const calculations = usePortfolioCalculations(
-    portfolio,
-    toInvest,
-    pendingChanges,
-    planningMode,
+  // Pending changes only exist in planning mode; entering, exiting, and
+  // applying all clear them.
+  const analysis = useMemo(
+    () =>
+      analyzePortfolio(withPendingChanges(portfolio, pendingChanges), toInvest),
+    [portfolio, pendingChanges, toInvest],
   );
 
   const contextValue: PortfolioContextValue = useMemo(
@@ -42,8 +43,8 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
       planningMode,
       pendingChanges,
       pendingBalance,
-      calculations,
-      updateAssetAccountValue,
+      analysis,
+      updateFundBalance,
       updatePendingChange,
       enterPlanningMode,
       exitPlanningMode,
@@ -61,8 +62,8 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
       planningMode,
       pendingChanges,
       pendingBalance,
-      calculations,
-      updateAssetAccountValue,
+      analysis,
+      updateFundBalance,
       updatePendingChange,
       enterPlanningMode,
       exitPlanningMode,

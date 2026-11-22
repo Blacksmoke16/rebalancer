@@ -1,21 +1,8 @@
 import { useListState } from "@mantine/hooks";
 import { createContext, use } from "react";
-import { PendingChanges } from "../hooks/usePortfolioData";
-import { Account, AssetClass } from "../types";
+import { PortfolioAnalysis } from "../portfolio";
+import { Account, AssetClass, PendingChanges } from "../types";
 import { AccountId, DollarAmount } from "../types/branded";
-
-export interface CalculationMethods {
-  totalForAccount: (accountId: AccountId) => number;
-  totalForAssetClassAccount: (
-    assetClassName: string,
-    accountId: AccountId,
-  ) => number;
-  currentForAssetClass: (assetClass: AssetClass) => number;
-  totalDollars: () => number;
-  currentPercentage: (assetClass: AssetClass) => number;
-  targetDollars: (assetClass: AssetClass) => number;
-  amountToBuy: (assetClass: AssetClass) => number;
-}
 
 export interface PortfolioContextValue {
   accounts: Account[];
@@ -24,16 +11,15 @@ export interface PortfolioContextValue {
   planningMode: boolean;
   pendingChanges: PendingChanges;
   pendingBalance: number;
-  calculations: CalculationMethods;
-  updateAssetAccountValue: (
-    assetClassName: string,
-    fundTicker: string,
+  // Analysis of the portfolio with any pending changes applied.
+  analysis: PortfolioAnalysis;
+  updateFundBalance: (
+    fundKey: string,
     accountId: AccountId,
     value: number,
   ) => void;
   updatePendingChange: (
-    assetClassName: string,
-    fundTicker: string,
+    fundKey: string,
     accountId: AccountId,
     changeAmount: number,
   ) => void;
