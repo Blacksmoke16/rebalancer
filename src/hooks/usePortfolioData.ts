@@ -1,20 +1,11 @@
 import { useListState } from "@mantine/hooks";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { STORAGE } from "../constants";
+import { withPendingChanges } from "../portfolio";
 import { loadPortfolioData, savePortfolioData } from "../storage";
-import { Account, AssetClass } from "../types";
+import { Account, AssetClass, PendingChanges } from "../types";
 import { AccountId, createDollarAmount, DollarAmount } from "../types/branded";
 import { defaultAccounts, defaultAssetClasses } from "../utils";
-
-export type PendingChanges = Record<string, number>;
-
-function getPendingChangeKey(
-  assetClassName: string,
-  fundTicker: string,
-  accountId: AccountId,
-): string {
-  return `${assetClassName}|${fundTicker}|${accountId}`;
-}
 
 interface UsePortfolioDataReturn {
   accounts: Account[];
@@ -23,15 +14,13 @@ interface UsePortfolioDataReturn {
   planningMode: boolean;
   pendingChanges: PendingChanges;
   pendingBalance: number;
-  updateAssetAccountValue: (
-    assetClassName: string,
-    fundTicker: string,
+  updateFundBalance: (
+    fundKey: string,
     accountId: AccountId,
     value: number,
   ) => void;
   updatePendingChange: (
-    assetClassName: string,
-    fundTicker: string,
+    fundKey: string,
     accountId: AccountId,
     changeAmount: number,
   ) => void;
@@ -66,7 +55,9 @@ export function usePortfolioData(): UsePortfolioDataReturn {
 
   // Calculate the pending balance (sum of all pending changes)
   const pendingBalance = useMemo(() => {
-    return Object.values(pendingChanges).reduce((sum, amt) => sum + amt, 0);
+    return Object.values(pendingChanges)
+      .flatMap((changes) => Object.values(changes))
+      .reduce((sum, amt) => sum + amt, 0);
   }, [pendingChanges]);
 
   // Debounced save function to avoid excessive localStorage writes
@@ -102,32 +93,23 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     }
   }, [accounts, portfolio, toInvest, isLoaded, debouncedSave]);
 
-  const updateAssetAccountValue = useCallback(
-    (
-      assetClassName: string,
-      fundTicker: string,
-      accountId: AccountId,
-      value: number,
-    ): void => {
+  const updateFundBalance = useCallback(
+    (fundKey: string, accountId: AccountId, value: number): void => {
       portfolioList.setState((prev) =>
-        prev.map((assetClass) => {
-          if (assetClass.name !== assetClassName) return assetClass;
+        prev.map((assetClass) => ({
+          ...assetClass,
+          funds: assetClass.funds.map((fund) => {
+            if (fund.key !== fundKey) return fund;
 
-          return {
-            ...assetClass,
-            funds: assetClass.funds.map((fund) => {
-              if (fund.ticker !== fundTicker) return fund;
-
-              return {
-                ...fund,
-                values: {
-                  ...fund.values,
-                  [accountId]: createDollarAmount(value),
-                },
-              };
-            }),
-          };
-        }),
+            return {
+              ...fund,
+              values: {
+                ...fund.values,
+                [accountId]: createDollarAmount(value),
+              },
+            };
+          }),
+        })),
       );
     },
     [portfolioList],
@@ -166,25 +148,11 @@ export function usePortfolioData(): UsePortfolioDataReturn {
   }, [accountList, portfolioList]);
 
   const updatePendingChange = useCallback(
-    (
-      assetClassName: string,
-      fundTicker: string,
-      accountId: AccountId,
-      changeAmount: number,
-    ): void => {
-      const key = getPendingChangeKey(assetClassName, fundTicker, accountId);
-      setPendingChanges((prev) => {
-        // Remove the entry if the change is zero
-        if (changeAmount === 0) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { [key]: _, ...rest } = prev;
-          return rest;
-        }
-        return {
-          ...prev,
-          [key]: changeAmount,
-        };
-      });
+    (fundKey: string, accountId: AccountId, changeAmount: number): void => {
+      setPendingChanges((prev) => ({
+        ...prev,
+        [fundKey]: { ...prev[fundKey], [accountId]: changeAmount },
+      }));
     },
     [],
   );
@@ -200,32 +168,12 @@ export function usePortfolioData(): UsePortfolioDataReturn {
   }, []);
 
   const applyPendingChanges = useCallback((): void => {
-    // Apply each pending change to the actual holdings
-    Object.entries(pendingChanges).forEach(([key, changeAmount]) => {
-      const [assetClassName, fundTicker, accountId] = key.split("|") as [
-        string,
-        string,
-        AccountId,
-      ];
-
-      // Find current value
-      const assetClass = portfolio.find((ac) => ac.name === assetClassName);
-      if (!assetClass) return;
-
-      const fund = assetClass.funds.find((f) => f.ticker === fundTicker);
-      if (!fund) return;
-
-      const currentValue = fund.values[accountId] ?? 0;
-      const newValue = currentValue + changeAmount;
-
-      // Update the value
-      updateAssetAccountValue(assetClassName, fundTicker, accountId, newValue);
-    });
+    portfolioList.setState((prev) => withPendingChanges(prev, pendingChanges));
 
     // Clear planning mode state
     setPlanningMode(false);
     setPendingChanges({});
-  }, [pendingChanges, portfolio, updateAssetAccountValue]);
+  }, [pendingChanges, portfolioList]);
 
   return {
     // State
@@ -237,7 +185,7 @@ export function usePortfolioData(): UsePortfolioDataReturn {
     pendingBalance,
 
     // Actions
-    updateAssetAccountValue,
+    updateFundBalance,
     updatePendingChange,
     enterPlanningMode,
     exitPlanningMode,

@@ -57,37 +57,23 @@ export function useAssetClassForm({
     form.setValues({ portfolio });
   }, [portfolio]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // The form doesn't edit balances, so each existing fund keeps its current
+  // balances rather than the form's copy; funds added in the form keep theirs.
   const preserveFundValues = useCallback(
     (newPortfolio: AssetClass[]): AssetClass[] => {
-      return newPortfolio.map((newAssetClass) => {
-        const existingAssetClass = portfolio.find(
-          (existing) => existing.name === newAssetClass.name,
-        );
+      const valuesByFundKey = new Map(
+        portfolio
+          .flatMap((assetClass) => assetClass.funds)
+          .map((fund) => [fund.key, fund.values]),
+      );
 
-        if (!existingAssetClass) {
-          return newAssetClass;
-        }
-
-        const updatedFunds = newAssetClass.funds.map((newFund) => {
-          const existingFund = existingAssetClass.funds.find(
-            (existing) => existing.ticker === newFund.ticker,
-          );
-
-          if (existingFund) {
-            return {
-              ...newFund,
-              values: existingFund.values,
-            };
-          }
-
-          return newFund;
-        });
-
-        return {
-          ...newAssetClass,
-          funds: updatedFunds,
-        };
-      });
+      return newPortfolio.map((assetClass) => ({
+        ...assetClass,
+        funds: assetClass.funds.map((fund) => ({
+          ...fund,
+          values: valuesByFundKey.get(fund.key) ?? fund.values,
+        })),
+      }));
     },
     [portfolio],
   );

@@ -45,12 +45,9 @@ function SummaryCard({
 }
 
 export const PortfolioSummaryCards = memo(function PortfolioSummaryCards() {
-  const {
-    portfolio,
-    calculations: { totalDollars, currentPercentage },
-  } = usePortfolioContext();
+  const { portfolio, analysis } = usePortfolioContext();
 
-  const totalValue = totalDollars();
+  const totalValue = analysis.total;
   const totalAssetClasses = portfolio.length;
   const totalFunds = portfolio.reduce(
     (sum, assetClass) => sum + assetClass.funds.length,
@@ -59,12 +56,11 @@ export const PortfolioSummaryCards = memo(function PortfolioSummaryCards() {
 
   // Calculate portfolio balance metrics
   const assetClassDeltas = portfolio.map((assetClass) => {
-    const current = currentPercentage(assetClass) * 100;
-    const target = assetClass.allocation;
+    const { deltaPercent } = analysis.assetClasses[assetClass.key];
     return {
       name: assetClass.name,
-      delta: current - target,
-      absDelta: Math.abs(current - target),
+      delta: deltaPercent,
+      absDelta: Math.abs(deltaPercent),
     };
   });
 

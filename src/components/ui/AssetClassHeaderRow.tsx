@@ -12,9 +12,8 @@ interface AssetClassHeaderRowProps {
 
 export const AssetClassHeaderRow = memo<AssetClassHeaderRowProps>(
   function AssetClassHeaderRow({ assetClass, accounts }) {
-    const {
-      calculations: { totalForAssetClassAccount, currentForAssetClass },
-    } = usePortfolioContext();
+    const { analysis } = usePortfolioContext();
+    const { accountTotals, current } = analysis.assetClasses[assetClass.key];
 
     return (
       <Fragment>
@@ -27,25 +26,17 @@ export const AssetClassHeaderRow = memo<AssetClassHeaderRowProps>(
           </TableTd>
           <TableTd />
           {accounts.map((account) => (
-            <TableTd key={`${assetClass.name}-${account.key}-total`}>
+            <TableTd key={account.key}>
               <Center>
                 <div className={styles.totalCell}>
-                  <CurrencyCell
-                    value={totalForAssetClassAccount(
-                      assetClass.name,
-                      account.key,
-                    )}
-                  />
+                  <CurrencyCell value={accountTotals[account.key] ?? 0} />
                 </div>
               </Center>
             </TableTd>
           ))}
           <TableTd>
             <div className={styles.totalCell}>
-              <CurrencyCell
-                value={currentForAssetClass(assetClass)}
-                align="right"
-              />
+              <CurrencyCell value={current} align="right" />
             </div>
           </TableTd>
         </TableTr>

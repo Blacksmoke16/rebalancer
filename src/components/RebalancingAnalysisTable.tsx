@@ -15,8 +15,9 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { memo, useMemo, useCallback } from "react";
+import { memo, useCallback } from "react";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
+import type { AssetClassAnalysis } from "../portfolio";
 import { CurrencyCell, DeltaCell, PercentageCell } from "./ui/FormatCells";
 import { NumberField } from "./ui/NumberField";
 import { createDollarAmount } from "../types/branded";
@@ -24,16 +25,8 @@ import classes from "./RebalancingAnalysisTable.module.css";
 import commonClasses from "../styles/common.module.css";
 import type { AssetClass } from "../types";
 
-interface AssetCalculation {
+interface AssetCalculation extends AssetClassAnalysis {
   assetClass: AssetClass;
-  current: number;
-  target: number;
-  currentPercent: number;
-  toBuy: number;
-  projected: number;
-  projectedPercent: number;
-  deltaPercent: number;
-  deltaDollars: number;
 }
 
 // Mobile Layout Component
@@ -66,7 +59,7 @@ const MobileRebalanceLayout = memo(function MobileRebalanceLayout({
       {/* Asset Class Cards */}
       {assetCalculations.map(
         ({ assetClass, current, currentPercent, toBuy, projectedPercent }) => (
-          <Card key={assetClass.name} withBorder p="md" shadow="sm">
+          <Card key={assetClass.key} withBorder p="md" shadow="sm">
             <Stack gap="sm">
               <Title order={4} size="h5">
                 {assetClass.name}
@@ -204,7 +197,7 @@ const DesktopRebalanceLayout = memo(function DesktopRebalanceLayout({
                 deltaPercent,
                 deltaDollars,
               }) => (
-                <TableTr key={assetClass.name}>
+                <TableTr key={assetClass.key}>
                   <TableTd>{assetClass.name}</TableTd>
                   <TableTd>
                     <PercentageCell value={currentPercent} />
@@ -245,18 +238,8 @@ const DesktopRebalanceLayout = memo(function DesktopRebalanceLayout({
 
 export const RebalancingAnalysisTable = memo(
   function RebalancingAnalysisTable() {
-    const {
-      portfolio,
-      toInvest,
-      setToInvest,
-      calculations: {
-        currentPercentage,
-        targetDollars,
-        currentForAssetClass,
-        amountToBuy,
-        totalDollars,
-      },
-    } = usePortfolioContext();
+    const { portfolio, toInvest, setToInvest, analysis } =
+      usePortfolioContext();
 
     const handleToInvestChange = useCallback(
       (value: number) => {
@@ -265,40 +248,10 @@ export const RebalancingAnalysisTable = memo(
       [setToInvest],
     );
 
-    // Pre-calculate values for all asset classes to avoid repeated function calls
-    const assetCalculations = useMemo(() => {
-      const totalPortfolioValue = totalDollars() + toInvest;
-
-      return portfolio.map((assetClass) => {
-        const current = currentForAssetClass(assetClass);
-        const target = targetDollars(assetClass);
-        const currentPercent = currentPercentage(assetClass) * 100;
-        const toBuy = amountToBuy(assetClass);
-        const projected = current + toBuy;
-        const projectedPercent =
-          totalPortfolioValue > 0 ? (projected / totalPortfolioValue) * 100 : 0;
-
-        return {
-          assetClass,
-          current,
-          target,
-          currentPercent,
-          toBuy,
-          projected,
-          projectedPercent,
-          deltaPercent: currentPercent - assetClass.allocation,
-          deltaDollars: target - current,
-        };
-      });
-    }, [
-      portfolio,
-      currentForAssetClass,
-      targetDollars,
-      currentPercentage,
-      amountToBuy,
-      totalDollars,
-      toInvest,
-    ]);
+    const assetCalculations = portfolio.map((assetClass) => ({
+      assetClass,
+      ...analysis.assetClasses[assetClass.key],
+    }));
 
     return (
       <>

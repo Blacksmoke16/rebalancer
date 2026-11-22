@@ -1,7 +1,6 @@
 import { Stack, TableTd, TableTr, Text } from "@mantine/core";
 import { memo } from "react";
 import { Account, AssetClass, Fund } from "../../types";
-import { AccountId } from "../../types/branded";
 import { usePortfolioContext } from "../../contexts/PortfolioContext";
 import { NumberField } from "./NumberField";
 import classes from "../../App.module.css";
@@ -13,14 +12,6 @@ interface FundDataRowProps {
   isFirstFund: boolean;
 }
 
-function getPendingChangeKey(
-  assetClassName: string,
-  fundTicker: string,
-  accountId: AccountId,
-): string {
-  return `${assetClassName}|${fundTicker}|${accountId}`;
-}
-
 export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
   fund,
   assetClass,
@@ -28,7 +19,7 @@ export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
   isFirstFund,
 }) {
   const {
-    updateAssetAccountValue,
+    updateFundBalance,
     updatePendingChange,
     planningMode,
     pendingChanges,
@@ -40,12 +31,7 @@ export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
       <TableTd>{fund.ticker}</TableTd>
       {accounts.map((account) => {
         const currentValue = fund.values[account.key] || 0;
-        const pendingChangeKey = getPendingChangeKey(
-          assetClass.name,
-          fund.ticker,
-          account.key,
-        );
-        const pendingChange = pendingChanges[pendingChangeKey] || 0;
+        const pendingChange = pendingChanges[fund.key]?.[account.key] || 0;
         const projectedValue = currentValue + pendingChange;
 
         return (
@@ -64,12 +50,7 @@ export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
                       value < 0
                         ? Math.max(value, -(currentValue as number))
                         : value;
-                    updatePendingChange(
-                      assetClass.name,
-                      fund.ticker,
-                      account.key,
-                      cappedValue,
-                    );
+                    updatePendingChange(fund.key, account.key, cappedValue);
                   }}
                 />
                 {pendingChange !== 0 && (
@@ -85,12 +66,7 @@ export const FundDataRow = memo<FundDataRowProps>(function FundDataRow({
                 value={currentValue}
                 data-testid={`${fund.ticker}-${account.name}-value`}
                 onValueChange={(value) => {
-                  updateAssetAccountValue(
-                    assetClass.name,
-                    fund.ticker,
-                    account.key,
-                    value,
-                  );
+                  updateFundBalance(fund.key, account.key, value);
                 }}
               />
             )}

@@ -15,6 +15,7 @@ import {
 } from "@mantine/core";
 import { Fragment, memo } from "react";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
+import { assetClassTotal, fundTotal } from "../portfolio";
 import { AccountTotalsRow } from "./ui/AccountTotalsRow";
 import { AssetClassHeaderRow } from "./ui/AssetClassHeaderRow";
 import { FundDataRow } from "./ui/FundDataRow";
@@ -32,13 +33,13 @@ const MobilePortfolioLayout = memo(function MobilePortfolioLayout({
   return (
     <Stack gap="md" hiddenFrom="md">
       {portfolio.map((assetClass) => (
-        <Card key={assetClass.name} withBorder p="md" shadow="sm">
+        <Card key={assetClass.key} withBorder p="md" shadow="sm">
           <Stack gap="sm">
             <Title order={4} size="h5">
               {assetClass.name}
             </Title>
             {assetClass.funds.map((fund) => (
-              <Card key={fund.ticker} withBorder p="sm">
+              <Card key={fund.key} withBorder p="sm">
                 <Stack gap="xs">
                   <Group justify="space-between">
                     <Text fw={600}>{fund.ticker}</Text>
@@ -64,10 +65,7 @@ const MobilePortfolioLayout = memo(function MobilePortfolioLayout({
                       Fund Total:
                     </Text>
                     <Text size="sm" fw={600}>
-                      $
-                      {Object.values(fund.values)
-                        .reduce((sum, val) => sum + val, 0)
-                        .toLocaleString()}
+                      ${fundTotal(fund).toLocaleString()}
                     </Text>
                   </Group>
                 </Stack>
@@ -82,18 +80,7 @@ const MobilePortfolioLayout = memo(function MobilePortfolioLayout({
                 Asset Class Total:
               </Text>
               <Text fw={700} c="blue">
-                $
-                {assetClass.funds
-                  .reduce(
-                    (sum, fund) =>
-                      sum +
-                      Object.values(fund.values).reduce(
-                        (fundSum, val) => fundSum + val,
-                        0,
-                      ),
-                    0,
-                  )
-                  .toLocaleString()}
+                ${assetClassTotal(assetClass).toLocaleString()}
               </Text>
             </Group>
           </Stack>
@@ -137,11 +124,11 @@ const DesktopPortfolioLayout = memo(function DesktopPortfolioLayout({
           </TableThead>
           <TableTbody>
             {portfolio.map((assetClass) => (
-              <Fragment key={assetClass.name}>
+              <Fragment key={assetClass.key}>
                 {assetClass.funds.map((fund, fundIdx) => {
                   const isFirstFund = fundIdx === 0;
                   return (
-                    <Fragment key={fund.ticker}>
+                    <Fragment key={fund.key}>
                       {isFirstFund && (
                         <AssetClassHeaderRow
                           assetClass={assetClass}

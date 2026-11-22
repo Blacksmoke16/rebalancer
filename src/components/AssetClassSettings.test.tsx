@@ -62,6 +62,24 @@ describe("AssetClassSettings", () => {
     expect(nameInput).toHaveValue("US Total Stock Market");
   });
 
+  it("saves a newly added fund without balances, even if its ticker matches an existing fund", async () => {
+    const user = userEvent.setup();
+    const { saveButton, onPortfolioChange } = renderAssetClassSettings();
+
+    await user.click(screen.getByRole("button", { name: "Add Fund" }));
+    const newTickerInput = screen
+      .getAllByPlaceholderText("VTI")
+      .filter((input) => !isInaccessible(input))[1];
+    await user.type(newTickerInput, "VTI");
+    await user.click(saveButton);
+
+    const [[savedPortfolio]] = onPortfolioChange.mock.calls as [[AssetClass[]]];
+    expect(savedPortfolio[0].funds[0].values).toEqual(
+      portfolio[0].funds[0].values,
+    );
+    expect(savedPortfolio[0].funds[1].values).toEqual({});
+  });
+
   it("saves names with whitespace collapsed and tickers trimmed", async () => {
     const user = userEvent.setup();
     const { nameInput, tickerInput, saveButton, onPortfolioChange } =
