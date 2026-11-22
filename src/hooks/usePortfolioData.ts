@@ -2,12 +2,25 @@ import { useEffect, useState } from "react";
 import { STORAGE } from "../constants";
 import {
   analyzePortfolio,
+  toDollarFund,
+  toShareFund,
   withoutOrphanedBalances,
   withPendingChanges,
 } from "../portfolio";
 import { loadPortfolioData, savePortfolioData } from "../storage";
-import { Account, AssetClass, PendingChanges, PortfolioData } from "../types";
-import { AccountId, createDollarAmount, DollarAmount } from "../types/branded";
+import {
+  Account,
+  AssetClass,
+  Fund,
+  PendingChanges,
+  PortfolioData,
+} from "../types";
+import {
+  AccountId,
+  createDollarAmount,
+  createShareCount,
+  DollarAmount,
+} from "../types/branded";
 import { defaultAccounts, defaultAssetClasses } from "../utils";
 
 type PortfolioState = Pick<
@@ -77,29 +90,66 @@ export function usePortfolioData() {
     setPortfolioState((prev) => ({ ...prev, toInvest: value }));
   }
 
+  // Replaces the fund with the given key with `update(fund)`.
+  function updateFund(fundKey: string, update: (fund: Fund) => Fund): void {
+    setPortfolioState((prev) => ({
+      ...prev,
+      portfolio: prev.portfolio.map((assetClass) => ({
+        ...assetClass,
+        funds: assetClass.funds.map((fund) =>
+          fund.key === fundKey ? update(fund) : fund,
+        ),
+      })),
+    }));
+  }
+
+  // `value` is in the fund's unit: dollars for a dollar fund, shares for a
+  // share fund.
   function updateFundBalance(
     fundKey: string,
     accountId: AccountId,
     value: number,
   ): void {
-    setPortfolioState((prev) => ({
-      ...prev,
-      portfolio: prev.portfolio.map((assetClass) => ({
-        ...assetClass,
-        funds: assetClass.funds.map((fund) => {
-          // Share funds hold share counts, not dollar balances.
-          if (fund.key !== fundKey || fund.unit !== "dollars") return fund;
-
-          return {
+    updateFund(fundKey, (fund) =>
+      fund.unit === "shares"
+        ? {
             ...fund,
-            values: {
-              ...fund.values,
-              [accountId]: createDollarAmount(value),
-            },
-          };
-        }),
-      })),
-    }));
+            shares: { ...fund.shares, [accountId]: createShareCount(value) },
+          }
+        : {
+            ...fund,
+            values: { ...fund.values, [accountId]: createDollarAmount(value) },
+          },
+    );
+  }
+
+  // A price of 0, as from a cleared input, leaves the fund unpriced. Setting
+  // the price the fund already has keeps its date: the price input reports its
+  // value whenever that value changes, including after a conversion sets it.
+  function updateFundPrice(fundKey: string, price: number): void {
+    const newPrice = price > 0 ? price : null;
+    const now = new Date().toISOString();
+    updateFund(fundKey, (fund) => {
+      if (fund.unit !== "shares" || fund.price === newPrice) return fund;
+      return {
+        ...fund,
+        price: newPrice,
+        priceAsOf: newPrice === null ? null : now,
+      };
+    });
+  }
+
+  function convertFundToShares(fundKey: string, price: number): void {
+    const now = new Date().toISOString();
+    updateFund(fundKey, (fund) =>
+      fund.unit === "dollars" ? toShareFund(fund, price, now) : fund,
+    );
+  }
+
+  function convertFundToDollars(fundKey: string): void {
+    updateFund(fundKey, (fund) =>
+      fund.unit === "shares" ? toDollarFund(fund) : fund,
+    );
   }
 
   // Balances held in accounts that are no longer in the list are dropped.
@@ -179,6 +229,9 @@ export function usePortfolioData() {
 
     // Actions
     updateFundBalance,
+    updateFundPrice,
+    convertFundToShares,
+    convertFundToDollars,
     updatePendingChange,
     updateAccounts,
     updatePortfolio,

@@ -36,6 +36,7 @@ export interface ShareFund extends FundBase {
 }
 
 export type Fund = DollarFund | ShareFund;
+export type FundUnit = Fund["unit"];
 
 export interface AssetClass {
   name: string;

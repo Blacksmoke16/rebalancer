@@ -16,11 +16,24 @@ import {
 import { Fragment } from "react";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
 import { assetClassTotal, fundDollarValues, fundTotal } from "../portfolio";
+import { formatDollars, formatPrice, formatShares } from "../utils/format";
 import { AccountTotalsRow } from "./ui/AccountTotalsRow";
 import { AssetClassHeaderRow } from "./ui/AssetClassHeaderRow";
 import { FundDataRow } from "./ui/FundDataRow";
 import commonClasses from "../styles/common.module.css";
-import type { Account, AssetClass } from "../types";
+import type { Account, AssetClass, Fund } from "../types";
+import type { AccountId } from "../types/branded";
+
+// A fund's holding in one account: its dollar value, or for a share fund, how
+// that value comes from its shares and price.
+function holdingText(fund: Fund, accountId: AccountId): string {
+  const value = formatDollars(fundDollarValues(fund)[accountId] ?? 0);
+  if (fund.unit === "dollars") return value;
+
+  const shares = formatShares(fund.shares[accountId] ?? 0);
+  if (!fund.price) return `${shares} sh, no price`;
+  return `${shares} sh × ${formatPrice(fund.price)} = ${value}`;
+}
 
 // Mobile Layout Component
 function MobilePortfolioLayout({
@@ -49,12 +62,7 @@ function MobilePortfolioLayout({
                       <Text size="sm" c="dimmed">
                         {account.name}:
                       </Text>
-                      <Text size="sm">
-                        $
-                        {(
-                          fundDollarValues(fund)[account.key] ?? 0
-                        ).toLocaleString()}
-                      </Text>
+                      <Text size="sm">{holdingText(fund, account.key)}</Text>
                     </Group>
                   ))}
                   <Group
@@ -68,7 +76,7 @@ function MobilePortfolioLayout({
                       Fund Total:
                     </Text>
                     <Text size="sm" fw={600}>
-                      ${fundTotal(fund).toLocaleString()}
+                      {formatDollars(fundTotal(fund))}
                     </Text>
                   </Group>
                 </Stack>
@@ -83,7 +91,7 @@ function MobilePortfolioLayout({
                 Asset Class Total:
               </Text>
               <Text fw={700} c="blue">
-                ${assetClassTotal(assetClass).toLocaleString()}
+                {formatDollars(assetClassTotal(assetClass))}
               </Text>
             </Group>
           </Stack>
@@ -112,6 +120,7 @@ function DesktopPortfolioLayout({
                 Asset Class
               </TableTh>
               <TableTh className={commonClasses.tableHeader}>Ticker</TableTh>
+              <TableTh className={commonClasses.tableHeader}>Price</TableTh>
               {accounts.map((account) => (
                 <TableTh
                   key={account.key}

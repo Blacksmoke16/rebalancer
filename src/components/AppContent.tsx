@@ -30,6 +30,7 @@ import {
   PlanningModeAlert,
 } from "./ui/PlanningModeControls";
 import { PortfolioSummaryCards } from "./ui/PortfolioSummaryCards";
+import { UnpricedFundsAlert } from "./ui/UnpricedFundsAlert";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
 
 // Read once when the app loads rather than on every render, which must be pure.
@@ -68,6 +69,7 @@ export function AppContent() {
             <PlanningModeToggle />
           </Group>
           <PlanningModeAlert />
+          <UnpricedFundsAlert />
           <PortfolioInputTable />
           <Title order={2}>Rebalancing Analysis</Title>
           <RebalancingAnalysisTable />

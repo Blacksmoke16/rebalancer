@@ -156,6 +156,37 @@ describe("AssetClassSettings", () => {
     expect(saveButton).toBeDisabled();
   });
 
+  it("requires a share fund's ticker to be a single symbol", async () => {
+    const user = userEvent.setup();
+    const { tickerInput, saveButton } = renderAssetClassSettings(vi.fn(), [
+      { ...portfolio[0], funds: [shareFund] },
+    ]);
+
+    await user.clear(tickerInput);
+    await user.type(tickerInput, "VXUS / VEU");
+
+    expect(
+      screen.getByText("Use a single ticker symbol, like VTI or BRK-B"),
+    ).toBeInTheDocument();
+    expect(saveButton).toBeDisabled();
+  });
+
+  it("accepts a share fund ticker with a dash", async () => {
+    const user = userEvent.setup();
+    const { tickerInput, saveButton, onPortfolioChange } =
+      renderAssetClassSettings(vi.fn(), [
+        { ...portfolio[0], funds: [shareFund] },
+      ]);
+
+    await user.clear(tickerInput);
+    await user.type(tickerInput, "BRK-B");
+    await user.click(saveButton);
+
+    expect(onPortfolioChange).toHaveBeenCalledWith([
+      { ...portfolio[0], funds: [{ ...shareFund, ticker: "BRK-B" }] },
+    ]);
+  });
+
   it("rejects allocations that do not total 100%", async () => {
     const user = userEvent.setup();
     const { allocationInput, saveButton } = renderAssetClassSettings();

@@ -3,6 +3,8 @@ import {
   analyzePortfolio,
   fundDollarValues,
   fundTotal,
+  toDollarFund,
+  toShareFund,
   withoutOrphanedBalances,
   withPendingChanges,
 } from "./portfolio";
@@ -12,7 +14,13 @@ import {
   createDollarAmount,
   createShareCount,
 } from "./types/branded";
-import type { AssetClass, Fund, PendingChanges, ShareFund } from "./types";
+import type {
+  AssetClass,
+  DollarFund,
+  Fund,
+  PendingChanges,
+  ShareFund,
+} from "./types";
 
 // Holdings are keyed by account id; these stand in for those ids in the mocks.
 const ACCOUNT_IDS = {
@@ -125,6 +133,72 @@ function withUsFund(fund: Fund): AssetClass[] {
     assetClass.key === US ? { ...assetClass, funds: [fund] } : assetClass,
   );
 }
+
+describe("toShareFund", () => {
+  const vtiDollars = mockPortfolio[0].funds[0] as DollarFund;
+  const asOf = "2026-11-22T15:00:00.000Z";
+
+  it("converts each balance into shares at the given price", () => {
+    expect(toShareFund(vtiDollars, 250, asOf)).toEqual({
+      ticker: "VTI",
+      key: "vti-key",
+      unit: "shares",
+      shares: {
+        [ACCOUNT_IDS.k401]: 12,
+        [ACCOUNT_IDS.roth]: 8,
+        [ACCOUNT_IDS.brokerage]: 4,
+      },
+      price: 250,
+      priceAsOf: asOf,
+    });
+  });
+
+  it("keeps fractional shares to 6 decimal places", () => {
+    expect(toShareFund(vtiDollars, 297.15, asOf)).toMatchObject({
+      shares: {
+        [ACCOUNT_IDS.k401]: 10.095911,
+        [ACCOUNT_IDS.roth]: 6.730607,
+        [ACCOUNT_IDS.brokerage]: 3.365304,
+      },
+    });
+  });
+
+  it("requires a positive price", () => {
+    expect(() => toShareFund(vtiDollars, 0, asOf)).toThrow(
+      "Invalid price: 0. Must be positive.",
+    );
+  });
+});
+
+describe("toDollarFund", () => {
+  it("values each holding at the fund's price, rounded to whole dollars", () => {
+    const fund = vtiShares(
+      { [ACCOUNT_IDS.k401]: 10.123456, [ACCOUNT_IDS.roth]: 2 },
+      297.15,
+    );
+
+    expect(toDollarFund(fund)).toEqual({
+      ticker: "VTI",
+      key: "vti-key",
+      unit: "dollars",
+      values: { [ACCOUNT_IDS.k401]: 3008, [ACCOUNT_IDS.roth]: 594 },
+    });
+  });
+
+  it("gives back the original balances after converting to shares", () => {
+    const vtiDollars = mockPortfolio[0].funds[0] as DollarFund;
+
+    expect(
+      toDollarFund(toShareFund(vtiDollars, 297.15, "2026-11-22T15:00:00Z")),
+    ).toEqual(vtiDollars);
+  });
+
+  it("requires a price", () => {
+    expect(() =>
+      toDollarFund(vtiShares({ [ACCOUNT_IDS.k401]: 10 }, null)),
+    ).toThrow("VTI has no price to convert its shares with.");
+  });
+});
 
 describe("fundDollarValues", () => {
   it("returns a dollar fund's balances", () => {

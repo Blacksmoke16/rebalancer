@@ -1,4 +1,13 @@
-import type { Account, AssetClass, Fund, PendingChanges } from "./types";
+import type {
+  Account,
+  AccountBalances,
+  AccountShares,
+  AssetClass,
+  DollarFund,
+  Fund,
+  PendingChanges,
+  ShareFund,
+} from "./types";
 import {
   AccountId,
   AssetClassId,
@@ -39,6 +48,45 @@ export function fundDollarValues(
     values[accountId as AccountId] = shares * price;
   }
   return values;
+}
+
+// Converts a dollar fund to shares at the given price, which becomes the fund's
+// price.
+export function toShareFund(
+  fund: DollarFund,
+  price: number,
+  priceAsOf: string,
+): ShareFund {
+  if (!(price > 0)) {
+    throw new Error(`Invalid price: ${price}. Must be positive.`);
+  }
+
+  const shares: AccountShares = {};
+  for (const [accountId, value] of Object.entries(fund.values)) {
+    shares[accountId as AccountId] = createShareCount(value / price);
+  }
+  return {
+    ticker: fund.ticker,
+    key: fund.key,
+    unit: "shares",
+    shares,
+    price,
+    priceAsOf,
+  };
+}
+
+// Converts a share fund to dollars at its price, rounding each holding to whole
+// dollars.
+export function toDollarFund(fund: ShareFund): DollarFund {
+  if (!fund.price) {
+    throw new Error(`${fund.ticker} has no price to convert its shares with.`);
+  }
+
+  const values: AccountBalances = {};
+  for (const [accountId, value] of Object.entries(fundDollarValues(fund))) {
+    values[accountId as AccountId] = createDollarAmount(value ?? 0);
+  }
+  return { ticker: fund.ticker, key: fund.key, unit: "dollars", values };
 }
 
 export function fundTotal(fund: Fund): number {

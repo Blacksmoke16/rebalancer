@@ -6,38 +6,64 @@ import {
 } from "./validation";
 
 describe("validateTicker", () => {
-  it("should accept valid ticker strings", () => {
-    expect(validateTicker("VTI")).toBe(null);
-    expect(validateTicker("VXUS")).toBe(null);
-    expect(validateTicker("BND")).toBe(null);
-    expect(validateTicker("A")).toBe(null);
+  describe("for dollar funds", () => {
+    it("should accept valid ticker strings", () => {
+      expect(validateTicker("VTI", "dollars")).toBe(null);
+      expect(validateTicker("VXUS", "dollars")).toBe(null);
+      expect(validateTicker("BND", "dollars")).toBe(null);
+      expect(validateTicker("A", "dollars")).toBe(null);
+    });
+
+    it("should accept lowercase tickers", () => {
+      expect(validateTicker("vti", "dollars")).toBe(null);
+      expect(validateTicker("vxus", "dollars")).toBe(null);
+    });
+
+    it("should accept multiple tickers with slash", () => {
+      expect(validateTicker("VTSAX / VTI", "dollars")).toBe(null);
+      expect(validateTicker("VTI/VTSAX", "dollars")).toBe(null);
+    });
+
+    it("should accept tickers with numbers", () => {
+      expect(validateTicker("VTI123", "dollars")).toBe(null);
+      expect(validateTicker("FUND1", "dollars")).toBe(null);
+    });
+
+    it("should accept tickers with surrounding whitespace", () => {
+      expect(validateTicker("  vti  ", "dollars")).toBe(null);
+    });
+
+    it("should reject empty or invalid tickers", () => {
+      expect(validateTicker("", "dollars")).toBe("Ticker is required");
+      expect(validateTicker("   ", "dollars")).toBe("Ticker is required");
+      expect(validateTicker("VTI-A", "dollars")).toBe("Ticker is required");
+      expect(validateTicker("VTI.A", "dollars")).toBe("Ticker is required");
+      expect(validateTicker("VTI@", "dollars")).toBe("Ticker is required");
+    });
   });
 
-  it("should accept lowercase tickers", () => {
-    expect(validateTicker("vti")).toBe(null);
-    expect(validateTicker("vxus")).toBe(null);
-  });
+  describe("for share funds", () => {
+    const SINGLE_SYMBOL = "Use a single ticker symbol, like VTI or BRK-B";
 
-  it("should accept multiple tickers with slash", () => {
-    expect(validateTicker("VTSAX / VTI")).toBe(null);
-    expect(validateTicker("VTI/VTSAX")).toBe(null);
-  });
+    it("should accept a single symbol, including Yahoo's punctuation", () => {
+      expect(validateTicker("VTI", "shares")).toBe(null);
+      expect(validateTicker("vtsax", "shares")).toBe(null);
+      expect(validateTicker("BRK-B", "shares")).toBe(null);
+      expect(validateTicker("BRK.B", "shares")).toBe(null);
+      expect(validateTicker("BTC-USD", "shares")).toBe(null);
+      expect(validateTicker("EURUSD=X", "shares")).toBe(null);
+      expect(validateTicker("  VTI  ", "shares")).toBe(null);
+    });
 
-  it("should accept tickers with numbers", () => {
-    expect(validateTicker("VTI123")).toBe(null);
-    expect(validateTicker("FUND1")).toBe(null);
-  });
+    it("should reject several tickers in one row", () => {
+      expect(validateTicker("VTSAX / VTI", "shares")).toBe(SINGLE_SYMBOL);
+      expect(validateTicker("VTSAX VTI", "shares")).toBe(SINGLE_SYMBOL);
+    });
 
-  it("should accept tickers with surrounding whitespace", () => {
-    expect(validateTicker("  vti  ")).toBe(null);
-  });
-
-  it("should reject empty or invalid tickers", () => {
-    expect(validateTicker("")).toBe("Ticker is required");
-    expect(validateTicker("   ")).toBe("Ticker is required");
-    expect(validateTicker("VTI-A")).toBe("Ticker is required");
-    expect(validateTicker("VTI.A")).toBe("Ticker is required");
-    expect(validateTicker("VTI@")).toBe("Ticker is required");
+    it("should reject empty or invalid symbols", () => {
+      expect(validateTicker("", "shares")).toBe(SINGLE_SYMBOL);
+      expect(validateTicker("VTI@", "shares")).toBe(SINGLE_SYMBOL);
+    });
   });
 });
 

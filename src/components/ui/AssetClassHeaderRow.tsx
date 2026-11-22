@@ -27,6 +27,7 @@ export function AssetClassHeaderRow({
           <div className={styles.assetClassName}>{assetClass.name}</div>
         </TableTd>
         <TableTd />
+        <TableTd />
         {accounts.map((account) => (
           <TableTd key={account.key}>
             <Center>
