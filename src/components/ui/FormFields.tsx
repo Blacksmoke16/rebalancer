@@ -1,11 +1,10 @@
 import { ActionIcon, NumberInput } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import { FORMATTING } from "../../constants";
-import { Percentage } from "../../types/branded";
 
 // Percentage input with validation
 interface PercentageInputProps {
-  value?: Percentage;
+  value?: number;
   onChange?: (value: string | number) => void;
   label?: string;
   placeholder?: string;

@@ -2,7 +2,7 @@ import { formRootRule, isInRange, isNotEmpty, useForm } from "@mantine/form";
 import { randomId } from "@mantine/hooks";
 import { useEffect } from "react";
 import { AssetClass } from "../types";
-import { AssetClassId, FundTicker, Percentage } from "../types/branded";
+import { AssetClassId } from "../types/branded";
 import {
   sanitizeName,
   validateAllocationSum,
@@ -45,7 +45,7 @@ export function useAssetClassForm({
         name: sanitizeName(assetClass.name),
         funds: assetClass.funds.map((fund) => ({
           ...fund,
-          ticker: fund.ticker.trim() as FundTicker,
+          ticker: fund.ticker.trim(),
         })),
       })),
     }),
@@ -85,8 +85,8 @@ export function useAssetClassForm({
   function addAssetClass() {
     form.insertListItem("portfolio", {
       name: "",
-      allocation: 0 as Percentage,
-      funds: [{ ticker: "" as FundTicker, values: {}, key: randomId() }],
+      allocation: 0,
+      funds: [{ ticker: "", values: {}, key: randomId() }],
       key: randomId() as AssetClassId,
     });
     form.clearFieldError("portfolio");
@@ -98,7 +98,7 @@ export function useAssetClassForm({
 
   function addFund(assetClassIndex: number) {
     form.insertListItem(`portfolio.${assetClassIndex}.funds`, {
-      ticker: "" as FundTicker,
+      ticker: "",
       values: {},
       key: randomId(),
     });

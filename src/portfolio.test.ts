@@ -4,12 +4,7 @@ import {
   withoutOrphanedBalances,
   withPendingChanges,
 } from "./portfolio";
-import {
-  AccountId,
-  AssetClassId,
-  createDollarAmount,
-  createPercentage,
-} from "./types/branded";
+import { AccountId, AssetClassId, createDollarAmount } from "./types/branded";
 import type { AssetClass, PendingChanges } from "./types";
 
 // Holdings are keyed by account id; these stand in for those ids in the mocks.
@@ -27,10 +22,10 @@ const BONDS = "bonds-key" as AssetClassId;
 const mockPortfolio: AssetClass[] = [
   {
     name: "US Total Stock Market",
-    allocation: createPercentage(60),
+    allocation: 60,
     funds: [
       {
-        ticker: "VTI" as any,
+        ticker: "VTI",
         values: {
           [ACCOUNT_IDS.k401]: createDollarAmount(3000),
           [ACCOUNT_IDS.roth]: createDollarAmount(2000),
@@ -43,10 +38,10 @@ const mockPortfolio: AssetClass[] = [
   },
   {
     name: "International Stocks",
-    allocation: createPercentage(30),
+    allocation: 30,
     funds: [
       {
-        ticker: "VXUS" as any,
+        ticker: "VXUS",
         values: {
           [ACCOUNT_IDS.k401]: createDollarAmount(1500),
           [ACCOUNT_IDS.roth]: createDollarAmount(1000),
@@ -59,10 +54,10 @@ const mockPortfolio: AssetClass[] = [
   },
   {
     name: "Bonds",
-    allocation: createPercentage(10),
+    allocation: 10,
     funds: [
       {
-        ticker: "BND" as any,
+        ticker: "BND",
         values: {
           [ACCOUNT_IDS.k401]: createDollarAmount(500),
           [ACCOUNT_IDS.roth]: createDollarAmount(300),
@@ -355,15 +350,15 @@ describe("withPendingChanges (Planning Mode)", () => {
     const portfolioWithMultipleFunds: AssetClass[] = [
       {
         name: "US Total Stock Market",
-        allocation: createPercentage(60),
+        allocation: 60,
         funds: [
           {
-            ticker: "VTI" as any,
+            ticker: "VTI",
             values: { [ACCOUNT_IDS.k401]: createDollarAmount(3000) },
             key: "vti-key",
           },
           {
-            ticker: "VTSAX" as any,
+            ticker: "VTSAX",
             values: { [ACCOUNT_IDS.roth]: createDollarAmount(2000) },
             key: "vtsax-key",
           },

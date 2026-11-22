@@ -28,4 +28,14 @@ describe("AppContent", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText("Something went wrong")).not.toBeInTheDocument();
   });
+
+  it("shows the current year in the footer", () => {
+    renderWithMantine(<App />);
+
+    expect(
+      screen.getByText(
+        `© ${new Date().getFullYear()} George Dietrich (Blacksmoke16)`,
+      ),
+    ).toBeInTheDocument();
+  });
 });

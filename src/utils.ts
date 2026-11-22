@@ -4,8 +4,6 @@ import {
   createAccountId,
   createAssetClassId,
   createDollarAmount,
-  createFundTicker,
-  createPercentage,
 } from "./types/branded";
 
 export function defaultAccounts(): Account[] {
@@ -23,10 +21,10 @@ export function defaultAssetClasses(accounts: Account[]): AssetClass[] {
   return [
     {
       name: "US Total Stock Market",
-      allocation: createPercentage(60),
+      allocation: 60,
       funds: [
         {
-          ticker: createFundTicker("VTI"),
+          ticker: "VTI",
           values: {
             [taxDeferred.key]: createDollarAmount(3730),
             [roth.key]: createDollarAmount(6927),
@@ -39,10 +37,10 @@ export function defaultAssetClasses(accounts: Account[]): AssetClass[] {
     },
     {
       name: "International Total Stock Market",
-      allocation: createPercentage(30),
+      allocation: 30,
       funds: [
         {
-          ticker: createFundTicker("VXUS"),
+          ticker: "VXUS",
           values: {
             [taxDeferred.key]: createDollarAmount(17573),
           },
@@ -53,10 +51,10 @@ export function defaultAssetClasses(accounts: Account[]): AssetClass[] {
     },
     {
       name: "US Total Bond Market",
-      allocation: createPercentage(10),
+      allocation: 10,
       funds: [
         {
-          ticker: createFundTicker("BND"),
+          ticker: "BND",
           values: {
             [taxDeferred.key]: createDollarAmount(5090),
           },
