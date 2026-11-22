@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { isInaccessible, renderWithMantine, screen } from "../test/utils";
+import { renderWithMantine, screen } from "../test/utils";
 import { AssetClass } from "../types";
 import {
   AccountId,
@@ -26,10 +26,6 @@ const portfolio: AssetClass[] = [
   },
 ];
 
-// The settings form renders separate mobile and desktop copies of each
-// input and button; both copies are bound to the same form field. These
-// queries skip the mobile copies, which are hidden at jsdom's default
-// 1024px viewport.
 function renderAssetClassSettings(onPortfolioChange = vi.fn()) {
   renderWithMantine(
     <AssetClassSettings
@@ -37,16 +33,11 @@ function renderAssetClassSettings(onPortfolioChange = vi.fn()) {
       onPortfolioChange={onPortfolioChange}
     />,
   );
-  // The ticker input has no label, so it can't be found by role and name.
-  const tickerInput = screen
-    .getAllByPlaceholderText("VTI")
-    .find((input) => !isInaccessible(input));
-  if (!tickerInput) throw new Error("No visible ticker input");
   return {
     onPortfolioChange,
     nameInput: screen.getByRole("textbox", { name: "Name" }),
     allocationInput: screen.getByRole("textbox", { name: "Target %" }),
-    tickerInput,
+    tickerInput: screen.getByRole("textbox", { name: "Ticker" }),
     saveButton: screen.getByRole("button", { name: "Save Changes" }),
   };
 }
@@ -67,9 +58,9 @@ describe("AssetClassSettings", () => {
     const { saveButton, onPortfolioChange } = renderAssetClassSettings();
 
     await user.click(screen.getByRole("button", { name: "Add Fund" }));
-    const newTickerInput = screen
-      .getAllByPlaceholderText("VTI")
-      .filter((input) => !isInaccessible(input))[1];
+    const newTickerInput = screen.getAllByRole("textbox", {
+      name: "Ticker",
+    })[1];
     await user.type(newTickerInput, "VTI");
     await user.click(saveButton);
 
@@ -107,7 +98,7 @@ describe("AssetClassSettings", () => {
     await user.clear(nameInput);
     await user.type(nameInput, "   ");
 
-    expect(screen.getAllByText("Name is required")[0]).toBeInTheDocument();
+    expect(screen.getByText("Name is required")).toBeInTheDocument();
     expect(saveButton).toBeDisabled();
   });
 
@@ -118,7 +109,7 @@ describe("AssetClassSettings", () => {
     await user.clear(allocationInput);
 
     expect(
-      screen.getAllByText("Must be a number between 0 and 100")[0],
+      screen.getByText("Must be a number between 0 and 100"),
     ).toBeInTheDocument();
     expect(saveButton).toBeDisabled();
   });
@@ -130,7 +121,7 @@ describe("AssetClassSettings", () => {
     await user.clear(tickerInput);
     await user.type(tickerInput, "VTI-A");
 
-    expect(screen.getAllByText("Ticker is required")[0]).toBeInTheDocument();
+    expect(screen.getByText("Ticker is required")).toBeInTheDocument();
     expect(saveButton).toBeDisabled();
   });
 

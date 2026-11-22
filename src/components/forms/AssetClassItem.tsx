@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Flex,
   Group,
   Paper,
   Stack,
@@ -46,8 +47,12 @@ export function AssetClassItem({
               Asset Class
             </Text>
 
-            {/* Mobile Layout - Stack name and percentage */}
-            <Stack gap="xs" hiddenFrom="sm">
+            {/* Stacked on mobile, side by side from the sm breakpoint */}
+            <Flex
+              direction={{ base: "column", sm: "row" }}
+              gap={{ base: "xs", sm: "md" }}
+              align="flex-start"
+            >
               <TextInput
                 label="Name"
                 placeholder="Asset class name"
@@ -58,21 +63,7 @@ export function AssetClassItem({
                 {...form.getInputProps(`portfolio.${assetIdx}.allocation`)}
                 data-testid={`asset-class-allocation-${assetIdx}`}
               />
-            </Stack>
-
-            {/* Desktop Layout - Horizontal group */}
-            <Group gap="md" visibleFrom="sm">
-              <TextInput
-                label="Name"
-                placeholder="Asset class name"
-                {...form.getInputProps(`portfolio.${assetIdx}.name`)}
-                data-testid={`asset-class-name-${assetIdx}`}
-              />
-              <PercentageInput
-                {...form.getInputProps(`portfolio.${assetIdx}.allocation`)}
-                data-testid={`asset-class-allocation-${assetIdx}`}
-              />
-            </Group>
+            </Flex>
           </Stack>
 
           <DeleteButton
