@@ -21,6 +21,7 @@ import {
 import { AccountsSettings } from "./AccountsSettings";
 import { AssetClassSettings } from "./AssetClassSettings";
 import { DataManagement } from "./DataManagement";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { Homepage } from "./Homepage";
 import { PortfolioInputTable } from "./PortfolioInputTable";
 import { RebalancingAnalysisTable } from "./RebalancingAnalysisTable";
@@ -168,7 +169,9 @@ export function AppContent() {
 
       <AppShell.Main>
         <Stack component="main" gap="xl">
-          {renderContent()}
+          {/* Contains a page's errors so the navigation stays usable; keyed
+              by tab so switching tabs clears the error. */}
+          <ErrorBoundary key={activeTab}>{renderContent()}</ErrorBoundary>
         </Stack>
       </AppShell.Main>
 

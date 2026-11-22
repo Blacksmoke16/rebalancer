@@ -1,4 +1,4 @@
-import { Button, Group, Paper, Title, Text, Stack } from "@mantine/core";
+import { Button, Flex, Paper, Title, Text, Stack } from "@mantine/core";
 import { AssetClass } from "../types";
 import { useAssetClassForm } from "../hooks/useAssetClassForm";
 import { AssetClassItem } from "./forms/AssetClassItem";
@@ -51,26 +51,13 @@ export function AssetClassSettings({
               />
             ))}
 
-            {/* Mobile Layout - Stack buttons vertically */}
-            <Stack gap="sm" hiddenFrom="sm" mt="lg">
-              <Button variant="light" onClick={addAssetClass} fullWidth>
-                + Add Asset Class
-              </Button>
-              <Button
-                disabled={!form.isValid() || !form.isDirty()}
-                type="submit"
-                fullWidth
-              >
-                Save Changes
-              </Button>
-            </Stack>
-
-            {/* Desktop Layout - Horizontal button group */}
-            <Group
+            {/* Stacked full-width on mobile, one row from the sm breakpoint */}
+            <Flex
               className={classes.actionButtons}
+              direction={{ base: "column", sm: "row" }}
               justify="space-between"
+              gap="sm"
               mt="lg"
-              visibleFrom="sm"
             >
               <Button variant="light" onClick={addAssetClass}>
                 + Add Asset Class
@@ -81,7 +68,7 @@ export function AssetClassSettings({
               >
                 Save Changes
               </Button>
-            </Group>
+            </Flex>
           </Stack>
         </form>
       </Stack>

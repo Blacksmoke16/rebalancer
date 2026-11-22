@@ -33,6 +33,14 @@ Object.defineProperty(window, "matchMedia", {
   })),
 });
 
+// Mock window.ResizeObserver, which jsdom lacks, for Mantine's ScrollArea
+Object.defineProperty(window, "ResizeObserver", {
+  writable: true,
+  value: vi.fn().mockImplementation(function () {
+    return { observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn() };
+  }),
+});
+
 // Mock console methods to reduce test noise
 global.console = {
   ...console,

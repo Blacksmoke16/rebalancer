@@ -13,16 +13,15 @@ test.describe("Asset Class & Fund Management", () => {
 
     // 4. In the Name field, enter "Emerging Markets"
     // After adding, the new asset class will be at index 3
-    // Note: .last() selects the visible desktop version (responsive design creates duplicates)
-    const nameField = page.getByTestId("asset-class-name-3").last();
+    const nameField = page.getByTestId("asset-class-name-3");
     await nameField.fill("Emerging Markets");
 
     // 5. In the Target % field, enter "5"
-    const targetField = page.getByTestId("asset-class-allocation-3").last();
+    const targetField = page.getByTestId("asset-class-allocation-3");
     await targetField.fill("5");
 
     // 6. In the fund ticker field, enter "VWO"
-    const tickerField = page.getByTestId("fund-ticker-3-0").last();
+    const tickerField = page.getByTestId("fund-ticker-3-0");
     await tickerField.fill("VWO");
 
     // 7. Verify the asset class is created
@@ -41,10 +40,7 @@ test.describe("Asset Class & Fund Management", () => {
 
     // 2. Find "US Total Stock Market" asset class (should have 60% allocation)
     // This is the first asset class (index 0)
-    // Note: .last() selects the visible desktop version
-    const usStockTargetField = page
-      .getByTestId("asset-class-allocation-0")
-      .last();
+    const usStockTargetField = page.getByTestId("asset-class-allocation-0");
     await expect(usStockTargetField).toHaveValue("60%");
 
     // 3. Change allocation from 60% to 55%
@@ -94,8 +90,7 @@ test.describe("Asset Class & Fund Management", () => {
 
     // 4. Enter ticker "VTSAX" in new fund field
     // The new fund will be at fund index 1 in asset class 0
-    // Note: .last() selects the visible desktop version
-    await page.getByTestId("fund-ticker-0-1").last().fill("VTSAX");
+    await page.getByTestId("fund-ticker-0-1").fill("VTSAX");
 
     // 5. Verify fund is added and appears in the list
     await expect(
@@ -128,8 +123,7 @@ test.describe("Asset Class & Fund Management", () => {
 
     // 2. Add a second fund to first asset class (index 0)
     await page.getByRole("button", { name: "Add Fund" }).first().click();
-    // Note: .last() selects the visible desktop version
-    await page.getByTestId("fund-ticker-0-1").last().fill("VTSAX");
+    await page.getByTestId("fund-ticker-0-1").fill("VTSAX");
 
     // 3. Click delete button on one of the funds
     await page.getByRole("button", { name: "Delete fund VTSAX" }).click();
@@ -169,10 +163,7 @@ test.describe("Asset Class & Fund Management", () => {
     await page.getByRole("link", { name: "Settings" }).click();
 
     // 2. Change US Total Stock Market from 60% to 50%
-    // Note: .last() selects the visible desktop version
-    const usStockTargetField = page
-      .getByTestId("asset-class-allocation-0")
-      .last();
+    const usStockTargetField = page.getByTestId("asset-class-allocation-0");
     await usStockTargetField.fill("50");
 
     // 3. Verify Total Allocation shows "90%"
@@ -192,10 +183,7 @@ test.describe("Asset Class & Fund Management", () => {
     await page.getByRole("link", { name: "Settings" }).click();
 
     // 2. Change US Total Stock Market from 60% to 70%
-    // Note: .last() selects the visible desktop version
-    const usStockTargetField = page
-      .getByTestId("asset-class-allocation-0")
-      .last();
+    const usStockTargetField = page.getByTestId("asset-class-allocation-0");
     await usStockTargetField.fill("70");
 
     // 3. Verify Total Allocation shows "110%"
@@ -216,11 +204,11 @@ test.describe("Asset Class & Fund Management", () => {
 
     // 2. Make valid changes that keep total allocation at 100%
     // Change US Total Stock Market from 60% to 65%
-    const usStockField = page.getByTestId("asset-class-allocation-0").last();
+    const usStockField = page.getByTestId("asset-class-allocation-0");
     await usStockField.fill("65");
 
     // Change International from 30% to 25%
-    const intlField = page.getByTestId("asset-class-allocation-1").last();
+    const intlField = page.getByTestId("asset-class-allocation-1");
     await intlField.fill("25");
 
     // 3. Verify Total Allocation is 100% (65 + 25 + 10 = 100)
