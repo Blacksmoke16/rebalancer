@@ -22,6 +22,9 @@ export interface QuoteResults {
   // Requested symbols the API had no price for. It leaves unknown symbols out
   // of its response rather than reporting an error.
   missing: string[];
+  // Why the symbols after `quotes` weren't requested, when a request failed
+  // after earlier ones succeeded.
+  error: PriceError | null;
 }
 
 export type PriceErrorKind = "invalid-key" | "quota" | "network" | "unexpected";
@@ -39,7 +42,9 @@ export class PriceError extends Error {
 type Fetch = (url: string, init: RequestInit) => Promise<Response>;
 
 // Fetches quotes for the given symbols, uppercased and deduplicated, in as few
-// requests as the API allows. Throws a PriceError if any request fails.
+// requests as the API allows. Throws a PriceError if the first request fails.
+// If a later one fails, it stops there and returns the quotes it already has,
+// since those used the key's quota too.
 export async function fetchQuotes(
   symbols: string[],
   apiKey: string,
@@ -49,16 +54,24 @@ export async function fetchQuotes(
     ...new Set(symbols.map((symbol) => symbol.trim().toUpperCase())),
   ];
   const quotes = new Map<string, Quote>();
+  const answered: string[] = [];
   for (let i = 0; i < requested.length; i += MAX_SYMBOLS_PER_REQUEST) {
     const batch = requested.slice(i, i + MAX_SYMBOLS_PER_REQUEST);
-    for (const quote of await fetchBatch(batch, apiKey, fetchImpl)) {
-      quotes.set(quote.symbol, quote);
+    try {
+      for (const quote of await fetchBatch(batch, apiKey, fetchImpl)) {
+        quotes.set(quote.symbol, quote);
+      }
+    } catch (error) {
+      if (i === 0 || !(error instanceof PriceError)) throw error;
+      return { quotes, missing: missingFrom(answered, quotes), error };
     }
+    answered.push(...batch);
   }
-  return {
-    quotes,
-    missing: requested.filter((symbol) => !quotes.has(symbol)),
-  };
+  return { quotes, missing: missingFrom(answered, quotes), error: null };
+}
+
+function missingFrom(symbols: string[], quotes: Map<string, Quote>): string[] {
+  return symbols.filter((symbol) => !quotes.has(symbol));
 }
 
 async function fetchBatch(
@@ -155,6 +168,7 @@ export interface RefreshSummary {
 export function describeRefresh({
   quotes,
   missing,
+  error,
 }: QuoteResults): RefreshSummary {
   const sentences = [
     `Updated ${quotes.size} ${quotes.size === 1 ? "price" : "prices"}.`,
@@ -177,8 +191,12 @@ export function describeRefresh({
     );
   }
 
+  if (error) {
+    sentences.push(`The rest weren't updated: ${describePriceError(error)}`);
+  }
+
   const message = sentences.join(" ");
-  if (missing.length > 0) {
+  if (missing.length > 0 || error) {
     return { title: "Some prices not updated", message, color: "yellow" };
   }
   if (otherCurrencies.length > 0) {

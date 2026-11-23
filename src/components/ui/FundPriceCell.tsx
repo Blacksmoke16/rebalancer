@@ -9,6 +9,7 @@ import {
 } from "@mantine/core";
 import { SubmitEvent, useState } from "react";
 import { usePortfolioContext } from "../../contexts/PortfolioContext";
+import { isPriceStale } from "../../portfolio";
 import { Fund, FundUnit } from "../../types";
 import { formatDate } from "../../utils/format";
 import { validateTicker } from "../../utils/validation";
@@ -16,6 +17,9 @@ import { NumberField } from "./NumberField";
 
 // Matches the precision prices are shown with.
 const PRICE_DECIMAL_SCALE = 4;
+
+// Read once when the app loads rather than on every render, which must be pure.
+const appLoadedAt = Date.now();
 
 interface FundPriceCellProps {
   fund: Fund;
@@ -26,6 +30,10 @@ interface FundPriceCellProps {
 // planned changes are valued at the current prices.
 export function FundPriceCell({ fund }: FundPriceCellProps) {
   const { planningMode, updateFundPrice } = usePortfolioContext();
+  const stale =
+    fund.unit === "shares" &&
+    fund.priceAsOf !== null &&
+    isPriceStale(fund.priceAsOf, appLoadedAt);
 
   return (
     <Stack gap={4}>
@@ -45,7 +53,11 @@ export function FundPriceCell({ fund }: FundPriceCellProps) {
             }}
           />
           {fund.priceAsOf && (
-            <Text size="xs" c="dimmed">
+            <Text
+              size="xs"
+              c={stale ? "orange" : "dimmed"}
+              title={stale ? "Over a week old" : undefined}
+            >
               as of {formatDate(fund.priceAsOf)}
             </Text>
           )}

@@ -33,12 +33,22 @@ describe("validateTicker", () => {
       expect(validateTicker("  vti  ", "dollars")).toBe(null);
     });
 
-    it("should reject empty or invalid tickers", () => {
+    it("should accept the punctuation in symbols like BRK-B", () => {
+      expect(validateTicker("BRK-B", "dollars")).toBe(null);
+      expect(validateTicker("BRK.B", "dollars")).toBe(null);
+      expect(validateTicker("EURUSD=X", "dollars")).toBe(null);
+      expect(validateTicker("BRK-B / BRK.B", "dollars")).toBe(null);
+    });
+
+    it("should require a ticker", () => {
       expect(validateTicker("", "dollars")).toBe("Ticker is required");
       expect(validateTicker("   ", "dollars")).toBe("Ticker is required");
-      expect(validateTicker("VTI-A", "dollars")).toBe("Ticker is required");
-      expect(validateTicker("VTI.A", "dollars")).toBe("Ticker is required");
-      expect(validateTicker("VTI@", "dollars")).toBe("Ticker is required");
+    });
+
+    it("should say which characters are allowed", () => {
+      expect(validateTicker("VTI@", "dollars")).toBe(
+        "Use letters, digits, spaces, and / . - =",
+      );
     });
   });
 
@@ -60,9 +70,12 @@ describe("validateTicker", () => {
       expect(validateTicker("VTSAX VTI", "shares")).toBe(SINGLE_SYMBOL);
     });
 
-    it("should reject empty or invalid symbols", () => {
-      expect(validateTicker("", "shares")).toBe(SINGLE_SYMBOL);
+    it("should reject invalid symbols", () => {
       expect(validateTicker("VTI@", "shares")).toBe(SINGLE_SYMBOL);
+    });
+
+    it("should require a ticker", () => {
+      expect(validateTicker("  ", "shares")).toBe("Ticker is required");
     });
   });
 });

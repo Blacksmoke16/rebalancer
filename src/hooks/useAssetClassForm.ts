@@ -52,16 +52,19 @@ export function useAssetClassForm({
         name: sanitizeName(assetClass.name),
         funds: assetClass.funds.map((fund) => ({
           ...fund,
-          ticker: fund.ticker.trim(),
+          ticker: fund.ticker.trim().toUpperCase(),
         })),
       })),
     }),
   });
 
-  // Update form when portfolio prop changes (e.g., after import)
+  // Update form when portfolio prop changes (e.g., after import). Resetting,
+  // rather than setting values, also clears the form's dirty flags: setValues
+  // flags `portfolio` as clean, which hides changes made by removing or
+  // reordering funds, since those only clear flags under `portfolio.N.funds`.
   useEffect(() => {
     form.setInitialValues({ portfolio });
-    form.setValues({ portfolio });
+    form.reset();
   }, [portfolio]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The form only edits tickers, so each existing fund keeps its current unit,
@@ -119,6 +122,10 @@ export function useAssetClassForm({
     form.removeListItem(`portfolio.${assetClassIndex}.funds`, fundIndex);
   }
 
+  function reorderFunds(assetClassIndex: number, from: number, to: number) {
+    form.reorderListItem(`portfolio.${assetClassIndex}.funds`, { from, to });
+  }
+
   function getTotalAllocation() {
     return form.values.portfolio.reduce(
       (sum, ac) => sum + (ac.allocation || 0),
@@ -133,6 +140,7 @@ export function useAssetClassForm({
     removeAssetClass,
     addFund,
     removeFund,
+    reorderFunds,
     getTotalAllocation,
   };
 }

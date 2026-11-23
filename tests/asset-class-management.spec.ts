@@ -30,7 +30,7 @@ test.describe("Asset Class & Fund Management", () => {
     // 8. Verify Total Allocation updates (should show validation message if not 100%)
     await expect(page.getByText("(Must equal 100%)")).toBeVisible();
 
-    // Note: No save - allocation is 105% (invalid), so Save Changes button would be disabled
+    // Note: No save - allocation is 105% (invalid), so the Save asset classes button would be disabled
   });
 
   test("Edit Asset Class Allocation", async ({ page }) => {
@@ -103,17 +103,12 @@ test.describe("Asset Class & Fund Management", () => {
     ).toBeVisible();
 
     // 7. Save changes (allocation is still 100%, so save button should be enabled)
-    const saveButton = page
-      .getByRole("button", { name: "Save Changes" })
-      .last();
+    const saveButton = page.getByRole("button", { name: "Save asset classes" });
     await expect(saveButton).toBeEnabled();
     await saveButton.click();
 
     // 8. Verify save button is disabled after save (form no longer dirty)
     await expect(saveButton).toBeDisabled();
-
-    // Note: localStorage persistence is not currently implemented in the app
-    // The Save Changes button only updates in-memory state
   });
 
   test("Delete Fund from Asset Class", async ({ page }) => {
@@ -217,19 +212,14 @@ test.describe("Asset Class & Fund Management", () => {
     ).toBeVisible();
     await expect(page.getByText("(Must equal 100%)")).not.toBeVisible();
 
-    // 4. Verify Save Changes button is enabled
-    const saveButton = page
-      .getByRole("button", { name: "Save Changes" })
-      .last();
+    // 4. Verify the Save asset classes button is enabled
+    const saveButton = page.getByRole("button", { name: "Save asset classes" });
     await expect(saveButton).toBeEnabled();
 
-    // 5. Click Save Changes
+    // 5. Click Save asset classes
     await saveButton.click();
 
     // 6. Verify save button is disabled after save (form no longer dirty)
     await expect(saveButton).toBeDisabled();
-
-    // Note: localStorage persistence is not currently implemented in the app
-    // The Save Changes button only updates in-memory state
   });
 });

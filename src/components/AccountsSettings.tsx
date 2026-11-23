@@ -29,6 +29,7 @@ import { Account } from "../types";
 import { useAccountForm } from "../hooks/useAccountForm";
 import { DeleteButton } from "./ui/FormFields";
 import classes from "./AccountsSettings.module.css";
+import commonClasses from "../styles/common.module.css";
 
 interface SortableAccountItemProps {
   account: Account;
@@ -66,7 +67,7 @@ function SortableAccountItem({
           {...listeners}
           variant="subtle"
           color="gray"
-          className={classes.dragHandle}
+          className={commonClasses.dragHandle}
           aria-label={`Drag to reorder ${account.name || "account"}`}
         >
           <IconGripVertical size={18} />
@@ -164,12 +165,23 @@ export function AccountsSettings({
               <Button variant="light" onClick={addAccount}>
                 + Add Account
               </Button>
-              <Button
-                disabled={!form.isValid() || !form.isDirty()}
-                type="submit"
-              >
-                Save Changes
-              </Button>
+              <Group gap="sm">
+                <Button
+                  variant="default"
+                  disabled={!form.isDirty()}
+                  onClick={() => {
+                    form.reset();
+                  }}
+                >
+                  Discard changes
+                </Button>
+                <Button
+                  disabled={!form.isValid() || !form.isDirty()}
+                  type="submit"
+                >
+                  Save accounts
+                </Button>
+              </Group>
             </Group>
           </Stack>
         </form>
