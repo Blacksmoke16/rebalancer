@@ -17,6 +17,14 @@
   text-transform: uppercase;
 }
 
+.dragHandle {
+  cursor: grab;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
 /* Common error styles */
 .errorText {
   font-family: monospace;

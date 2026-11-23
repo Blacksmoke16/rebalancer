@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.4.1] - 2026-11-22
+
+### Added
+
+- Add drag-and-drop reordering for funds within an asset class in Settings (George Dietrich)
+- Show the amount to buy in shares when an asset class holds a single priced share fund (George Dietrich)
+- Flag share prices that are over a week old (George Dietrich)
+- Add a "Discard changes" button to the Settings forms (George Dietrich)
+
+### Changed
+
+- Save tickers in uppercase, and allow the `.`, `-`, and `=` used in symbols like `BRK-B` (George Dietrich)
+- Rename the Settings save buttons to "Save accounts" and "Save asset classes" (George Dietrich)
+
+### Fixed
+
+- Fix deleting a fund, with no other changes, leaving the save button disabled (George Dietrich)
+- Keep the prices already fetched when a later price request fails (George Dietrich)
+
+[0.4.0]: https://github.com/blacksmoke16/rebalancer/releases/tag/v0.4.1
+
 ## [0.4.0] - 2026-11-22
 
 ### Added

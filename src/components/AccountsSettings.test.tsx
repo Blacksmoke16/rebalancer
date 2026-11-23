@@ -17,7 +17,8 @@ function renderAccountsSettings(onAccountsChange = vi.fn()) {
   return {
     onAccountsChange,
     nameInput: screen.getByRole("textbox", { name: "Name" }),
-    saveButton: screen.getByRole("button", { name: "Save Changes" }),
+    saveButton: screen.getByRole("button", { name: "Save accounts" }),
+    discardButton: screen.getByRole("button", { name: "Discard changes" }),
   };
 }
 
@@ -44,6 +45,24 @@ describe("AccountsSettings", () => {
     expect(onAccountsChange).toHaveBeenCalledWith([
       { name: "Roth IRA", key: "account-1" },
     ]);
+  });
+
+  it("discards unsaved changes, such as a deleted account", async () => {
+    const user = userEvent.setup();
+    const { saveButton, discardButton, onAccountsChange } =
+      renderAccountsSettings();
+    expect(discardButton).toBeDisabled();
+
+    await user.click(
+      screen.getByRole("button", { name: "Delete account 401k" }),
+    );
+    expect(screen.queryByRole("textbox", { name: "Name" })).toBeNull();
+    await user.click(discardButton);
+
+    expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("401k");
+    expect(saveButton).toBeDisabled();
+    expect(discardButton).toBeDisabled();
+    expect(onAccountsChange).not.toHaveBeenCalled();
   });
 
   it("rejects a blank account name", async () => {

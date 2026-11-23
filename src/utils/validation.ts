@@ -1,20 +1,26 @@
 import { FundUnit } from "../types";
 
-// Letters, digits, spaces and "/" so one fund row can list equivalent share
-// classes, e.g. "VTSAX / VTI".
-const TICKER_PATTERN = /^[A-Z0-9\s/]+$/i;
-
 // Share funds are priced by ticker, so they need one symbol as Yahoo Finance
 // writes it, e.g. "BRK-B", "BTC-USD", or "EURUSD=X".
 const SYMBOL_PATTERN = /^[A-Z0-9.=-]+$/i;
 
+// The characters symbols use, plus spaces and "/" so one dollar fund row can
+// list equivalent share classes, e.g. "VTSAX / VTI".
+const TICKER_PATTERN = /^[A-Z0-9.=\s/-]+$/i;
+
 export function validateTicker(value: string, unit: FundUnit): string | null {
+  const ticker = value.trim();
+  if (!ticker) {
+    return "Ticker is required";
+  }
   if (unit === "shares") {
-    return SYMBOL_PATTERN.test(value.trim())
+    return SYMBOL_PATTERN.test(ticker)
       ? null
       : "Use a single ticker symbol, like VTI or BRK-B";
   }
-  return TICKER_PATTERN.test(value.trim()) ? null : "Ticker is required";
+  return TICKER_PATTERN.test(ticker)
+    ? null
+    : "Use letters, digits, spaces, and / . - =";
 }
 
 export function validateAllocationSum(

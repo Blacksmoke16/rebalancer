@@ -49,8 +49,10 @@ function renderAssetClassSettings(
     onPortfolioChange,
     nameInput: screen.getByRole("textbox", { name: "Name" }),
     allocationInput: screen.getByRole("textbox", { name: "Target %" }),
-    tickerInput: screen.getByRole("textbox", { name: "Ticker" }),
-    saveButton: screen.getByRole("button", { name: "Save Changes" }),
+    // The first fund's ticker
+    tickerInput: screen.getAllByRole("textbox", { name: "Ticker" })[0],
+    saveButton: screen.getByRole("button", { name: "Save asset classes" }),
+    discardButton: screen.getByRole("button", { name: "Discard changes" }),
   };
 }
 
@@ -102,7 +104,7 @@ describe("AssetClassSettings", () => {
     ]);
   });
 
-  it("saves names with whitespace collapsed and tickers trimmed", async () => {
+  it("saves names with whitespace collapsed and tickers trimmed and uppercased", async () => {
     const user = userEvent.setup();
     const { nameInput, tickerInput, saveButton, onPortfolioChange } =
       renderAssetClassSettings();
@@ -110,7 +112,7 @@ describe("AssetClassSettings", () => {
     await user.clear(nameInput);
     await user.type(nameInput, "  US   Stocks  ");
     await user.clear(tickerInput);
-    await user.type(tickerInput, " VTSAX / VTI ");
+    await user.type(tickerInput, " vtsax / VTI ");
     await user.click(saveButton);
 
     expect(onPortfolioChange).toHaveBeenCalledWith([
@@ -150,10 +152,59 @@ describe("AssetClassSettings", () => {
     const { tickerInput, saveButton } = renderAssetClassSettings();
 
     await user.clear(tickerInput);
-    await user.type(tickerInput, "VTI-A");
+    await user.type(tickerInput, "VTI@");
 
-    expect(screen.getByText("Ticker is required")).toBeInTheDocument();
+    expect(
+      screen.getByText("Use letters, digits, spaces, and / . - ="),
+    ).toBeInTheDocument();
     expect(saveButton).toBeDisabled();
+  });
+
+  it("accepts a dollar fund ticker with a dash", async () => {
+    const user = userEvent.setup();
+    const { tickerInput, saveButton, onPortfolioChange } =
+      renderAssetClassSettings();
+
+    await user.clear(tickerInput);
+    await user.type(tickerInput, "BRK-B");
+    await user.click(saveButton);
+
+    expect(onPortfolioChange).toHaveBeenCalledWith([
+      {
+        ...portfolio[0],
+        funds: [{ ...portfolio[0].funds[0], ticker: "BRK-B" }],
+      },
+    ]);
+  });
+
+  it("saves a deleted fund with no other changes", async () => {
+    const user = userEvent.setup();
+    const bnd = { ...portfolio[0].funds[0], ticker: "BND", key: "fund-2" };
+    const { saveButton, onPortfolioChange } = renderAssetClassSettings(
+      vi.fn(),
+      [{ ...portfolio[0], funds: [portfolio[0].funds[0], bnd] }],
+    );
+
+    await user.click(screen.getByRole("button", { name: "Delete fund BND" }));
+    await user.click(saveButton);
+
+    expect(onPortfolioChange).toHaveBeenCalledWith(portfolio);
+  });
+
+  it("discards unsaved changes, such as a deleted fund", async () => {
+    const user = userEvent.setup();
+    const { saveButton, discardButton, onPortfolioChange } =
+      renderAssetClassSettings();
+    expect(discardButton).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Delete fund VTI" }));
+    expect(screen.queryByRole("textbox", { name: "Ticker" })).toBeNull();
+    await user.click(discardButton);
+
+    expect(screen.getByRole("textbox", { name: "Ticker" })).toHaveValue("VTI");
+    expect(saveButton).toBeDisabled();
+    expect(discardButton).toBeDisabled();
+    expect(onPortfolioChange).not.toHaveBeenCalled();
   });
 
   it("requires a share fund's ticker to be a single symbol", async () => {

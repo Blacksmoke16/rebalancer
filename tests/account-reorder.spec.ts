@@ -32,11 +32,8 @@ test.describe("Account Reordering", () => {
     await expect(accountInputs.nth(1)).toHaveValue("Taxable Brokerage");
     await expect(accountInputs.nth(2)).toHaveValue("401k");
 
-    // 5. Verify Save Changes button is enabled (form is dirty)
-    // Note: .first() selects the first Save Changes button (accounts section)
-    const saveButton = page
-      .getByRole("button", { name: "Save Changes" })
-      .first();
+    // 5. Verify the Save accounts button is enabled (form is dirty)
+    const saveButton = page.getByRole("button", { name: "Save accounts" });
     await expect(saveButton).toBeEnabled();
   });
 
@@ -63,9 +60,7 @@ test.describe("Account Reordering", () => {
     await expect(accountInputs.nth(2)).toHaveValue("401k");
 
     // 5. Save changes
-    const saveButton = page
-      .getByRole("button", { name: "Save Changes" })
-      .first();
+    const saveButton = page.getByRole("button", { name: "Save accounts" });
     await saveButton.click();
 
     // 6. Wait for save to complete (button becomes disabled)
@@ -112,10 +107,8 @@ test.describe("Account Reordering", () => {
     // 4. Verify reorder happened in UI
     await expect(accountInputs.nth(0)).toHaveValue("Roth IRA");
 
-    // 5. Verify Save Changes button is enabled (form has unsaved changes)
-    const saveButton = page
-      .getByRole("button", { name: "Save Changes" })
-      .first();
+    // 5. Verify the Save accounts button is enabled (form has unsaved changes)
+    const saveButton = page.getByRole("button", { name: "Save accounts" });
     await expect(saveButton).toBeEnabled();
 
     // 6. Reload page WITHOUT saving

@@ -122,8 +122,7 @@ test.describe("Share Funds", () => {
 
     // A dollar fund listing several tickers can't switch to shares.
     await page.getByTestId("fund-ticker-1-0").fill("VTIAX / VXUS");
-    // .last() selects the asset classes section's Save Changes button
-    await page.getByRole("button", { name: "Save Changes" }).last().click();
+    await page.getByRole("button", { name: "Save asset classes" }).click();
     await page.getByRole("link", { name: "Portfolio" }).click();
     await expect(
       page.getByTestId("VTIAX / VXUS-unit").getByRole("radio", {
@@ -144,5 +143,45 @@ test.describe("Share Funds", () => {
     await expect(
       page.getByText("12.552583 sh × $297.15 = $3,730"),
     ).toBeVisible();
+  });
+
+  test("Shows the amount to buy in shares for a single share fund", async ({
+    page,
+  }) => {
+    await openPortfolio(page);
+    await convertToShares(page, "VTI", "250");
+
+    // Of the $1,500 to invest, US stocks get $1,299.06, or 5.196255 shares of
+    // VTI. Bonds get some too, but BND tracks dollars.
+    const sharesToBuy = page
+      .getByText(/^≈ [\d.,]+ shares$/)
+      .filter({ visible: true });
+    await expect(sharesToBuy).toHaveText(["≈ 5.196255 shares"]);
+  });
+
+  test("Flags prices over a week old", async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-11-22T17:00:00Z"));
+    await openPortfolio(page);
+    await convertToShares(page, "VTI", "250");
+    await expect(
+      page.getByText("These prices are over a week old"),
+    ).toHaveCount(0);
+    await expect
+      .poll(() =>
+        page.evaluate(() => localStorage.getItem("rebalancer-portfolio-data")),
+      )
+      .toContain('"unit":"shares"');
+
+    // Eight days later, the price set at conversion is out of date.
+    await page.clock.setFixedTime(new Date("2026-11-30T17:00:00Z"));
+    await page.reload();
+
+    await expect(
+      page.getByText("These prices are over a week old: VTI"),
+    ).toBeVisible();
+    await expect(page.getByText(/^as of /)).toHaveAttribute(
+      "title",
+      "Over a week old",
+    );
   });
 });

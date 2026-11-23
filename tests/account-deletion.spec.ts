@@ -20,8 +20,7 @@ test.describe("Account Deletion", () => {
     // 2. Delete the 401k account and save
     await page.getByRole("link", { name: "Settings" }).click();
     await page.getByRole("button", { name: "Delete account 401k" }).click();
-    // .first() selects the accounts section's Save Changes button
-    await page.getByRole("button", { name: "Save Changes" }).first().click();
+    await page.getByRole("button", { name: "Save accounts" }).click();
 
     // 3. Only the remaining accounts' holdings are counted
     await page.getByRole("link", { name: "Portfolio" }).click();

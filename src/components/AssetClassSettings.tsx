@@ -21,6 +21,7 @@ export function AssetClassSettings({
     removeAssetClass,
     addFund,
     removeFund,
+    reorderFunds,
     getTotalAllocation,
   } = useAssetClassForm({ portfolio, onPortfolioChange });
 
@@ -48,6 +49,7 @@ export function AssetClassSettings({
                 onRemove={removeAssetClass}
                 onAddFund={addFund}
                 onRemoveFund={removeFund}
+                onReorderFunds={reorderFunds}
               />
             ))}
 
@@ -62,12 +64,23 @@ export function AssetClassSettings({
               <Button variant="light" onClick={addAssetClass}>
                 + Add Asset Class
               </Button>
-              <Button
-                disabled={!form.isValid() || !form.isDirty()}
-                type="submit"
-              >
-                Save Changes
-              </Button>
+              <Flex direction={{ base: "column", sm: "row" }} gap="sm">
+                <Button
+                  variant="default"
+                  disabled={!form.isDirty()}
+                  onClick={() => {
+                    form.reset();
+                  }}
+                >
+                  Discard changes
+                </Button>
+                <Button
+                  disabled={!form.isValid() || !form.isDirty()}
+                  type="submit"
+                >
+                  Save asset classes
+                </Button>
+              </Flex>
             </Flex>
           </Stack>
         </form>

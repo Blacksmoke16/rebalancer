@@ -16,16 +16,34 @@ import {
   Title,
 } from "@mantine/core";
 import { usePortfolioContext } from "../contexts/PortfolioContext";
-import type { AssetClassAnalysis } from "../portfolio";
+import { soleShareFundPrice, type AssetClassAnalysis } from "../portfolio";
 import { CurrencyCell, DeltaCell, PercentageCell } from "./ui/FormatCells";
 import { NumberField } from "./ui/NumberField";
 import { createDollarAmount } from "../types/branded";
+import { formatShares } from "../utils/format";
 import classes from "./RebalancingAnalysisTable.module.css";
 import commonClasses from "../styles/common.module.css";
 import type { AssetClass } from "../types";
 
 interface AssetCalculation extends AssetClassAnalysis {
   assetClass: AssetClass;
+  // Set when the asset class holds a single priced share fund.
+  sharePrice: number | null;
+}
+
+// The amount to buy in shares, when there's a single share fund to buy.
+function SharesToBuy({
+  toBuy,
+  sharePrice,
+}: Pick<AssetCalculation, "toBuy" | "sharePrice">) {
+  if (!sharePrice || toBuy <= 0) {
+    return null;
+  }
+  return (
+    <Text size="xs" c="dimmed">
+      ≈ {formatShares(toBuy / sharePrice)} shares
+    </Text>
+  );
 }
 
 // Mobile Layout Component
@@ -57,7 +75,14 @@ function MobileRebalanceLayout({
 
       {/* Asset Class Cards */}
       {assetCalculations.map(
-        ({ assetClass, current, currentPercent, toBuy, projectedPercent }) => (
+        ({
+          assetClass,
+          current,
+          currentPercent,
+          toBuy,
+          projectedPercent,
+          sharePrice,
+        }) => (
           <Card key={assetClass.key} withBorder p="md" shadow="sm">
             <Stack gap="sm">
               <Title order={4} size="h5">
@@ -99,9 +124,12 @@ function MobileRebalanceLayout({
                 <Text size="sm" fw={600} c="green">
                   Amount to Buy:
                 </Text>
-                <Text size="sm" fw={700} c="green">
-                  <CurrencyCell value={toBuy} />
-                </Text>
+                <Stack gap={0} align="flex-end">
+                  <Text size="sm" fw={700} c="green">
+                    <CurrencyCell value={toBuy} />
+                  </Text>
+                  <SharesToBuy toBuy={toBuy} sharePrice={sharePrice} />
+                </Stack>
               </Group>
 
               <Group justify="space-between">
@@ -195,6 +223,7 @@ function DesktopRebalanceLayout({
                 projectedPercent,
                 deltaPercent,
                 deltaDollars,
+                sharePrice,
               }) => (
                 <TableTr key={assetClass.key}>
                   <TableTd>{assetClass.name}</TableTd>
@@ -224,6 +253,7 @@ function DesktopRebalanceLayout({
                   </TableTd>
                   <TableTd>
                     <CurrencyCell value={toBuy} />
+                    <SharesToBuy toBuy={toBuy} sharePrice={sharePrice} />
                   </TableTd>
                 </TableTr>
               ),
@@ -245,6 +275,7 @@ export function RebalancingAnalysisTable() {
   const assetCalculations = portfolio.map((assetClass) => ({
     assetClass,
     ...analysis.assetClasses[assetClass.key],
+    sharePrice: soleShareFundPrice(assetClass),
   }));
 
   return (

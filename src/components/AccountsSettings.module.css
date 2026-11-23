@@ -6,14 +6,6 @@
   margin-top: var(--mantine-spacing-md);
 }
 
-.dragHandle {
-  cursor: grab;
-}
-
-.dragHandle:active {
-  cursor: grabbing;
-}
-
 .actionButtons {
   margin-top: var(--mantine-spacing-md);
 }

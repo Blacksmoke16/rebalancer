@@ -160,12 +160,27 @@ describe("fetchQuotes", () => {
     expect(missing).toEqual(["NOPE"]);
   });
 
+  it("keeps the quotes it got when a later request fails", async () => {
+    const symbols = Array.from({ length: 13 }, (_, i) => `S${i}`);
+    const fetchImpl = vi
+      .fn<(url: string) => Promise<Response>>()
+      .mockResolvedValueOnce(jsonResponse(quoteResponse(symbols.slice(0, 10))))
+      .mockResolvedValueOnce(jsonResponse({ message: "Limit Exceeded" }, 429));
+
+    const results = await fetchQuotes(symbols, "key", fetchImpl);
+
+    expect(results.quotes.size).toBe(10);
+    expect(results.missing).toEqual([]);
+    expect(results.error).toEqual(new PriceError("quota", "Limit Exceeded"));
+  });
+
   it("makes no request without symbols", async () => {
     const fetchImpl = vi.fn();
 
     expect(await fetchQuotes([], "key", fetchImpl)).toEqual({
       quotes: new Map(),
       missing: [],
+      error: null,
     });
     expect(fetchImpl).not.toHaveBeenCalled();
   });
@@ -226,6 +241,7 @@ describe("describeRefresh", () => {
           ["BND", quote("BND")],
         ]),
         missing: [],
+        error: null,
       }),
     ).toEqual({
       title: "Prices updated",
@@ -233,8 +249,11 @@ describe("describeRefresh", () => {
       color: "green",
     });
     expect(
-      describeRefresh({ quotes: new Map([["VTI", quote("VTI")]]), missing: [] })
-        .message,
+      describeRefresh({
+        quotes: new Map([["VTI", quote("VTI")]]),
+        missing: [],
+        error: null,
+      }).message,
     ).toBe("Updated 1 price.");
   });
 
@@ -243,6 +262,7 @@ describe("describeRefresh", () => {
       describeRefresh({
         quotes: new Map([["VTI", quote("VTI")]]),
         missing: ["NOPE", "GONE"],
+        error: null,
       }),
     ).toEqual({
       title: "Some prices not updated",
@@ -257,11 +277,39 @@ describe("describeRefresh", () => {
       describeRefresh({
         quotes: new Map([["SHOP.TO", quote("SHOP.TO", "CAD")]]),
         missing: [],
+        error: null,
       }),
     ).toEqual({
       title: "Some prices not in US dollars",
       message:
         "Updated 1 price. SHOP.TO is quoted in CAD, but its price is used as US dollars.",
+      color: "yellow",
+    });
+  });
+});
+
+describe("describeRefresh after a failed request", () => {
+  it("explains why the rest weren't updated", () => {
+    expect(
+      describeRefresh({
+        quotes: new Map([
+          [
+            "VTI",
+            {
+              symbol: "VTI",
+              price: 100,
+              asOf: "2026-11-20T21:00:02.000Z",
+              currency: "USD",
+            },
+          ],
+        ]),
+        missing: [],
+        error: new PriceError("quota", "Limit Exceeded"),
+      }),
+    ).toEqual({
+      title: "Some prices not updated",
+      message:
+        "Updated 1 price. The rest weren't updated: The API's request limit has been reached (Limit Exceeded). Try again later.",
       color: "yellow",
     });
   });

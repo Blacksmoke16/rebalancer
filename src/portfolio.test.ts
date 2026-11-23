@@ -3,7 +3,9 @@ import {
   analyzePortfolio,
   fundDollarValues,
   fundTotal,
+  isPriceStale,
   shareFundSymbols,
+  soleShareFundPrice,
   toDollarFund,
   toShareFund,
   withoutOrphanedBalances,
@@ -213,6 +215,39 @@ describe("shareFundSymbols", () => {
 
     // VXUS and BND are dollar funds.
     expect(shareFundSymbols(portfolio)).toEqual(["VTI", "BRK-B"]);
+  });
+});
+
+describe("soleShareFundPrice", () => {
+  it("is the price of an asset class's only fund when it tracks shares", () => {
+    const [usStocks] = withUsFund(vtiShares({ [ACCOUNT_IDS.k401]: 1 }, 250));
+
+    expect(soleShareFundPrice(usStocks)).toBe(250);
+  });
+
+  it("is null for a dollar fund, an unpriced share fund, or several funds", () => {
+    const [usStocks] = withUsFund(vtiShares({}, null));
+    const twoFunds = {
+      ...usStocks,
+      funds: [vtiShares({}, 250), { ...vtiShares({}, 250), key: "vti-2" }],
+    };
+
+    expect(soleShareFundPrice(mockPortfolio[0])).toBe(null);
+    expect(soleShareFundPrice(usStocks)).toBe(null);
+    expect(soleShareFundPrice(twoFunds)).toBe(null);
+  });
+});
+
+describe("isPriceStale", () => {
+  const now = new Date("2026-11-22T12:00:00.000Z").getTime();
+
+  it("is false for a price up to a week old", () => {
+    expect(isPriceStale("2026-11-22T11:00:00.000Z", now)).toBe(false);
+    expect(isPriceStale("2026-11-15T12:00:00.000Z", now)).toBe(false);
+  });
+
+  it("is true for a price over a week old", () => {
+    expect(isPriceStale("2026-11-15T11:59:00.000Z", now)).toBe(true);
   });
 });
 

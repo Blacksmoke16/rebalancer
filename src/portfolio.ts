@@ -167,6 +167,24 @@ export function withoutOrphanedBalances(
   }));
 }
 
+// The price of an asset class's only fund, when that's a priced share fund, so
+// a dollar amount for the asset class can be shown in shares. With several
+// funds there's no single fund to buy, so this is null.
+export function soleShareFundPrice(assetClass: AssetClass): number | null {
+  if (assetClass.funds.length !== 1) return null;
+  const [fund] = assetClass.funds;
+  return fund.unit === "shares" ? fund.price : null;
+}
+
+// Prices older than this may no longer reflect what a fund is worth.
+const STALE_PRICE_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Whether a price dated `priceAsOf` is over a week old at `now` (milliseconds
+// since the epoch).
+export function isPriceStale(priceAsOf: string, now: number): boolean {
+  return now - new Date(priceAsOf).getTime() > STALE_PRICE_AGE_MS;
+}
+
 // The symbols to look up prices for: each share fund's ticker, uppercased, once.
 export function shareFundSymbols(portfolio: AssetClass[]): string[] {
   const symbols = portfolio

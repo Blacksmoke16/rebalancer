@@ -22,6 +22,7 @@ interface AssetClassItemProps {
   onRemove: (index: number) => void;
   onAddFund: (assetClassIndex: number) => void;
   onRemoveFund: (assetClassIndex: number, fundIndex: number) => void;
+  onReorderFunds: (assetClassIndex: number, from: number, to: number) => void;
 }
 
 export function AssetClassItem({
@@ -31,6 +32,7 @@ export function AssetClassItem({
   onRemove,
   onAddFund,
   onRemoveFund,
+  onReorderFunds,
 }: AssetClassItemProps) {
   return (
     <Paper
@@ -86,6 +88,7 @@ export function AssetClassItem({
             assetClassIndex={assetIdx}
             form={form}
             onRemoveFund={onRemoveFund}
+            onReorderFunds={onReorderFunds}
           />
           <Button
             size="sm"
